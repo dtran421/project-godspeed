@@ -1,37 +1,41 @@
-import { CardInfo } from "./WatchlistDisplay";
+import { CardInfo } from "../../pages/index";
 
 const prepareTableData = (
 	shoeInfos: { [id: string]: CardInfo },
-	activeList: Record<string, unknown>[]
+	activeList: string[]
 ): Record<string, string>[] => {
+	console.log("test ", shoeInfos);
+	if (Object.keys(shoeInfos).length === 0) return [];
+
 	const tableData = [];
-	activeList.map((shoe) => {
-		const shoeInfo = shoeInfos[shoe.id as string];
+	activeList.map((shoeId) => {
+		const shoeInfo = shoeInfos[shoeId as string];
 		tableData.push({
 			image: shoeInfo.imageUrl,
-			product: {
-				name: shoe.name,
-				shoeInfo: shoeInfo
-			},
+			product: shoeInfo,
 			latestPrice: {
-				latestPrice: shoeInfo.latestPrice.last,
-				latestChange: shoeInfo.latestChange.percent
+				latestPrice: shoeInfo.latestPrice.market,
+				latestChange: formatDecimal(shoeInfo.latestChange.percent, 2)
 			},
 			retailPrice: `$${shoeInfo.retailPrice}`,
 			lowestAsk: `$${shoeInfo.latestPrice.ask}`,
 			highestBid: `$${shoeInfo.latestPrice.bid}`,
 			ytdGain: {
-				ytdGain: shoeInfo.latestPrice.last,
+				ytdGain: shoeInfo.latestPrice.market,
 				retailPrice: shoeInfo.retailPrice
 			},
 			ytdHigh: `$${shoeInfo.ytdPrice.high}`,
 			ytdLow: `$${shoeInfo.ytdPrice.low}`,
-			volatility: `${shoeInfo.volatility}%`,
-			meanPrice: `$${shoeInfo.meanPrice}`,
+			volatility: `${formatDecimal(shoeInfo.volatility, 2)}%`,
+			avgPrice: `$${shoeInfo.avgPrice}`,
 			totalSales: shoeInfo.sales
 		});
 	});
 	return tableData;
+};
+
+const formatDecimal = (dec, places): number => {
+	return Math.round(dec * 10000) / Math.pow(10, places);
 };
 
 export default prepareTableData;

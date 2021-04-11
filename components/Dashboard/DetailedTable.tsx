@@ -2,7 +2,7 @@ import React from "react";
 import { useMemo } from "react";
 import { useTable } from "react-table";
 
-import { CardInfo } from "./WatchlistDisplay";
+import { CardInfo } from "../../pages/index";
 import { specialGainCell } from "./CondensedTable";
 
 export interface DetailedTableProps {
@@ -17,8 +17,7 @@ const DetailedTable: React.FunctionComponent<DetailedTableProps> = ({
 			{
 				Header: "Product",
 				accessor: "product",
-				Cell: (props) =>
-					productCell(props.value.name, props.value.shoeInfo)
+				Cell: (props) => productCell(props.value)
 			},
 			{
 				Header: "Retail Price",
@@ -69,8 +68,8 @@ const DetailedTable: React.FunctionComponent<DetailedTableProps> = ({
 				Cell: (props) => statCell(props.value)
 			},
 			{
-				Header: "Mean Price",
-				accessor: "meanPrice",
+				Header: "Average Price",
+				accessor: "avgPrice",
 				Cell: (props) => statCell(props.value)
 			},
 			{
@@ -100,7 +99,7 @@ const DetailedTable: React.FunctionComponent<DetailedTableProps> = ({
 								<th
 									key={index}
 									{...column.getHeaderProps()}
-									className="text-left font-semibold px-4"
+									className="text-center font-semibold px-4"
 								>
 									{column.render("Header")}
 								</th>
@@ -137,17 +136,19 @@ const DetailedTable: React.FunctionComponent<DetailedTableProps> = ({
 	);
 };
 
-const productCell = (name: string, shoeInfo: CardInfo) => {
+const productCell = (shoeInfo: CardInfo) => {
 	return (
 		<div className="p-5">
-			<p className="font-semibold text-purple-500">{shoeInfo.ticker}</p>
+			<p className="text-center font-semibold text-purple-500">
+				{shoeInfo.ticker}
+			</p>
 		</div>
 	);
 };
 
 const statCell = (stat: string) => {
 	return (
-		<p className="text-lg text-left font-semibold px-4 align-top py-5">
+		<p className="text-lg text-center font-semibold px-4 align-top py-5">
 			{stat}
 		</p>
 	);
@@ -159,7 +160,7 @@ const specialStatCell = (
 ): JSX.Element => {
 	return (
 		<p
-			className={`text-lg text-left font-semibold px-4 align-top py-5 ${
+			className={`text-lg text-center font-semibold px-4 align-top py-5 ${
 				latestChange >= 0 ? "text-green-400" : "text-red-400"
 			}`}
 		>

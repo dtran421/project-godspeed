@@ -2,7 +2,7 @@ import React from "react";
 import { useMemo } from "react";
 import { useTable } from "react-table";
 
-import { CardInfo } from "./WatchlistDisplay";
+import { CardInfo } from "../../pages/index";
 
 export interface CondensedTableProps {
 	tableData: Record<string, string>[];
@@ -21,8 +21,7 @@ const CondensedTable: React.FunctionComponent<CondensedTableProps> = ({
 			{
 				Header: "",
 				accessor: "product",
-				Cell: (props) =>
-					productCell(props.value.name, props.value.shoeInfo)
+				Cell: (props) => productCell(props.value)
 			},
 			{
 				Header: "Market Price",
@@ -125,11 +124,11 @@ const imageCell = (imageUrl: string) => {
 	);
 };
 
-const productCell = (name: string, shoeInfo: CardInfo) => {
+const productCell = (shoeInfo: CardInfo) => {
 	return (
 		<div className="flex flex-col justify-between p-5">
 			<div className="flex flex-col">
-				<p className="text-xl font-bold">{name}</p>
+				<p className="text-xl font-bold">{shoeInfo.name}</p>
 				<div className="flex flex-row justify-between">
 					<p className="font-semibold text-purple-500">
 						{shoeInfo.ticker}
@@ -181,7 +180,7 @@ export const specialGainCell = (
 				gain >= 0 ? "text-green-400" : "text-red-400"
 			}`}
 		>
-			${gain} ({Math.round((gain / retailPrice) * 100) / 100}
+			${gain} ({Math.round((gain / retailPrice) * 10000) / 100}
 			%)
 		</p>
 	);

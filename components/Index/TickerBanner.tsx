@@ -12,11 +12,11 @@ const TickerBanner: React.FunctionComponent<TickerBannerProps> = ({
 		<Ticker speed={4} offset={"10%"}>
 			{({ index }) => (
 				<div className="flex flex-row px-8 py-2">
-					<h1 className="text-2xl text-white font-semibold pr-4">
+					<h1 className="text-xl text-white font-semibold pr-4">
 						{tickers[index % tickers.length].ticker}
 					</h1>
 					<h1
-						className={`text-2xl ${
+						className={`text-xl ${
 							tickers[index % tickers.length].change >= 0
 								? "text-green-400"
 								: "text-red-500"

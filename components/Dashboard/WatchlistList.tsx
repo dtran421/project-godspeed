@@ -31,7 +31,7 @@ const WatchlistList: React.FunctionComponent<WatchlistListProps> = ({
 			);
 		})}
 		<div className="my-2 text-center">
-			<button className="rounded-full bg-purple-50 border-2 border-purple-600 text-purple-600 font-medium text-lg mx-6 px-6 py-1">
+			<button className="rounded-full bg-purple-50 border-2 border-purple-600 text-purple-600 font-medium text-lg mx-6 px-6 py-1 hover:bg-purple-600 hover:text-white">
 				New list
 			</button>
 		</div>

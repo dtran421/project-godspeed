@@ -1,13 +1,17 @@
+import "react-big-calendar/lib/css/react-big-calendar.css";
+
 import React from "react";
 import { useState, useEffect } from "react";
-import Head from "next/head";
 import PageVisibility from "react-page-visibility";
+import { Calendar, momentLocalizer } from "react-big-calendar";
+import moment from "moment";
 import Twemoji from "react-twemoji";
 
 import Navbar from "../components/Global/Navbar";
 import TickerBanner from "../components/Index/TickerBanner";
 
 export interface CardInfo {
+	name: string;
 	ticker: string;
 	imageUrl: string;
 	colorway: string;
@@ -17,7 +21,7 @@ export interface CardInfo {
 	latestChange: Record<string, number>;
 	ytdPrice: Record<string, number>;
 	volatility: number;
-	meanPrice: number;
+	avgPrice: number;
 	sales: number;
 }
 
@@ -29,8 +33,9 @@ const tickers: { ticker: string; change: number }[] = [
 	{ ticker: "AFLK!@$", change: +10 }
 ];
 
-const shoeInfos: { [id: string]: CardInfo } = {
+export const shoeInfos: { [id: string]: CardInfo } = {
 	"air-jordan-1-retro-high-bred-toe": {
+		name: "Jordan 1 Retro High Bred Toe",
 		ticker: "AJ1H-BREDTOE",
 		imageUrl:
 			"https://stockx-360.imgix.net/Air-Jordan-1-Retro-High-Bred-Toe/Images/Air-Jordan-1-Retro-High-Bred-Toe/Lv2/img01.jpg?auto=compress&w=559&q=90&dpr=2&updated_at=1606322598&fit=clip&fm=jpg&ixlib=react-9.0.3",
@@ -38,7 +43,7 @@ const shoeInfos: { [id: string]: CardInfo } = {
 		releaseDate: "02/24/2018",
 		retailPrice: 160,
 		latestPrice: {
-			last: 745,
+			market: 745,
 			ask: 420,
 			bid: 702
 		},
@@ -51,28 +56,16 @@ const shoeInfos: { [id: string]: CardInfo } = {
 			low: 214
 		},
 		volatility: 15.2,
-		meanPrice: 631,
+		avgPrice: 631,
 		sales: 2484
 	}
 };
 
 const trendingList = [
-	{
-		id: "air-jordan-1-retro-high-bred-toe",
-		name: "Jordan 1 Retro High Bred Toe"
-	},
-	{
-		id: "air-jordan-1-retro-high-bred-toe",
-		name: "Jordan 1 Retro High Bred Toe"
-	},
-	{
-		id: "air-jordan-1-retro-high-bred-toe",
-		name: "Jordan 1 Retro High Bred Toe"
-	},
-	{
-		id: "air-jordan-1-retro-high-bred-toe",
-		name: "Jordan 1 Retro High Bred Toe"
-	}
+	"air-jordan-1-retro-high-bred-toe",
+	"air-jordan-1-retro-high-bred-toe",
+	"air-jordan-1-retro-high-bred-toe",
+	"air-jordan-1-retro-high-bred-toe"
 ];
 
 const Index: React.FunctionComponent<null> = () => {
@@ -87,60 +80,41 @@ const Index: React.FunctionComponent<null> = () => {
 		script.src = "https://platform.twitter.com/widgets.js";
 		script.async = true;
 		document.body.appendChild(script);
-
-		/* const shoeInfo: CardInfo = {
-			ticker: "AJ1H-BREDTOE",
-			imageUrl:
-				"https://stockx-360.imgix.net/Air-Jordan-1-Retro-High-Bred-Toe/Images/Air-Jordan-1-Retro-High-Bred-Toe/Lv2/img01.jpg?auto=compress&w=559&q=90&dpr=2&updated_at=1606322598&fit=clip&fm=jpg&ixlib=react-9.0.3",
-			retailPrice: 160,
-			latestPrice: {
-				latest: 0,
-				high: 0,
-				low: 0
-			},
-			latestChange: {
-				dollar: -209,
-				percent: -29
-			}
-		}; */
-
-		/* fetch(`https://stockx.com/${info.id}`).then((response) => {
-			const spans = $(response).find("span");
-			$.each(spans, (index, span) => {
-				if (span.dataset.testid === "product-ticker")
-					shoeInfo.ticker = span.innerHTML;
-			});
-
-			const images = $(response).find("img");
-			$.each(images, (index, image) => {
-				if (image.dataset.testid === "product-detail-image")
-					shoeInfo.imageUrl = image.src;
-			});
-
-			// updateCard(shoeInfo);
-		}); */
 	}, []);
+
+	const localizer = momentLocalizer(moment);
 
 	return (
 		<div className="w-full bg-gray-100">
-			<Head>
-				<title>Home | Godspeed</title>
-				<link rel="icon" href="/favicon.ico" />
-			</Head>
-
-			<Navbar page={""} />
+			<Navbar page={"Home"} />
 			<div className="w-full flex flex-col align-center">
 				<div className="bg-gray-800">
 					<PageVisibility onChange={handleVisibilityChange}>
 						{pageIsVisible && <TickerBanner tickers={tickers} />}
 					</PageVisibility>
 				</div>
-				<div className="flex flex-row justify-end p-10">
+				<div className="flex flex-row justify-between p-10">
+					<div className="flex w-full justify-center">
+						<div className="flex items-start bg-white p-10 rounded-xl">
+							<Calendar
+								localizer={localizer}
+								defaultDate={new Date()}
+								defaultView="month"
+								events={[]}
+								startAccessor="start"
+								endAccessor="end"
+								style={{
+									width: 800,
+									height: 600
+								}}
+							/>
+						</div>
+					</div>
 					<div className="h-2/3 rounded-xl shadow-lg p-4 bg-white">
 						<a
 							className="twitter-timeline h-screen overflow-auto"
 							href="https://twitter.com/shopkickflip/lists/shoe-news-72100?ref_src=twsrc%5Etfw"
-							data-width="400"
+							data-width="450"
 							data-height="800"
 							data-chrome="nofooter"
 						>
@@ -165,27 +139,25 @@ const Index: React.FunctionComponent<null> = () => {
 							</span>
 						</h1>
 						<div className="flex flex-row">
-							{trendingList.map((shoe, index) => {
+							{trendingList.map((shoeId, index) => {
 								return (
 									<div
 										key={index}
-										className="text-center rounded-xl px-4 py-6 mx-6 w-64 bg-white shadow-lg"
+										className="text-center rounded-xl px-4 py-6 mx-3 w-56 bg-white shadow-lg border border-gray-200"
 									>
 										<div className="flex justify-center">
 											<img
 												width="150"
 												height="150"
-												src={
-													shoeInfos[shoe.id].imageUrl
-												}
+												src={shoeInfos[shoeId].imageUrl}
 												className="rounded-lg mb-4"
 											/>
 										</div>
 										<p className="text-lg font-semibold mb-3">
-											{shoe.name}
+											{shoeInfos[shoeId].name}
 										</p>
 										<span className="font-semibold text-purple-500 bg-purple-100 rounded-full px-3 py-2">
-											{shoeInfos[shoe.id].ticker}
+											{shoeInfos[shoeId].ticker}
 										</span>
 									</div>
 								);
