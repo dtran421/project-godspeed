@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { CardInfo } from "../StructureTypes";
+
 // Initializing the cors middleware
 const headersConfig = {
 	headers: {
@@ -18,7 +20,7 @@ const headersConfig = {
 const fetchShoes = (req, res) => {
 	return new Promise((resolve, reject) => {
 		fetch(
-			`https://stockx.com/api/products/${req.query.shoe}?includes=market&currency=USD`,
+			`https://stockx.com/api/products/${req.query.shoeId}?includes=market&currency=USD`,
 			headersConfig
 		)
 			.then((response) => response.json())
@@ -48,7 +50,7 @@ const fetchShoes = (req, res) => {
 					volatility: marketData.volatility,
 					avgPrice: marketData.averageDeadstockPrice,
 					sales: marketData.deadstockSold
-				});
+				} as CardInfo);
 			})
 			.catch((err) => reject(err));
 	});

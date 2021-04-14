@@ -1,7 +1,7 @@
 import React from "react";
 import Ticker from "react-ticker";
 
-export interface TickerBannerProps {
+interface TickerBannerProps {
 	tickers: Record<string, unknown>[];
 }
 

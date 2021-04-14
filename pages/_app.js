@@ -16,13 +16,15 @@ const firebaseConfig = {
 	appId: "1:213992445187:web:1a570ed1d6ea5574e70536"
 };
 
+let app;
 if (!firebase.apps.length) {
-	firebase.initializeApp(firebaseConfig);
+	app = firebase.initializeApp(firebaseConfig);
 } else {
-	firebase.app();
+	app = firebase.app();
 }
+const db = firebase.firestore(app);
 
-export { firebase };
+export { firebase, db };
 
 function MyApp({ Component, pageProps }) {
 	return <Component {...pageProps} />;

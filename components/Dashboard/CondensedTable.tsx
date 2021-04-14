@@ -2,7 +2,7 @@ import React from "react";
 import { useMemo } from "react";
 import { useTable } from "react-table";
 
-import { CardInfo } from "../../pages/index";
+import { CardInfo } from "../../pages/api/StructureTypes";
 
 export interface CondensedTableProps {
 	tableData: Record<string, string>[];
@@ -111,7 +111,7 @@ const CondensedTable: React.FunctionComponent<CondensedTableProps> = ({
 	);
 };
 
-const imageCell = (imageUrl: string) => {
+const imageCell: React.FunctionComponent<string> = (imageUrl: string) => {
 	return (
 		<div className="flex items-center pr-2">
 			<img
@@ -124,31 +124,32 @@ const imageCell = (imageUrl: string) => {
 	);
 };
 
-const productCell = (shoeInfo: CardInfo) => {
+const productCell: React.FunctionComponent<CardInfo> = (shoeInfo: CardInfo) => {
+	const { name, ticker, retailPrice, colorway, releaseDate } = {
+		...shoeInfo
+	};
 	return (
 		<div className="flex flex-col justify-between p-5">
 			<div className="flex flex-col">
-				<p className="text-xl font-bold">{shoeInfo.name}</p>
+				<p className="text-xl font-bold">{name}</p>
 				<div className="flex flex-row justify-between">
-					<p className="font-semibold text-purple-500">
-						{shoeInfo.ticker}
-					</p>
-					<p className="font-semibold">${shoeInfo.retailPrice}</p>
+					<p className="font-semibold text-purple-500">{ticker}</p>
+					<p className="font-semibold">${retailPrice}</p>
 				</div>
 			</div>
 			<div>
 				<p className="text-sm font-semibold text-gray-800">
-					Colorway: {shoeInfo.colorway}
+					Colorway: {colorway}
 				</p>
 				<p className="text-sm font-semibold text-gray-800">
-					Release Date: {shoeInfo.releaseDate}
+					Release Date: {releaseDate}
 				</p>
 			</div>
 		</div>
 	);
 };
 
-const statCell = (stat: string) => {
+const statCell: React.FunctionComponent<string> = (stat: string) => {
 	return (
 		<p className="text-lg text-center font-semibold px-4 align-top py-5">
 			{stat}
@@ -156,7 +157,10 @@ const statCell = (stat: string) => {
 	);
 };
 
-const specialPriceCell = (latestPrice: number, latestChange: number) => {
+const specialPriceCell: React.FunctionComponent<number> = (
+	latestPrice: number,
+	latestChange: number
+) => {
 	return (
 		<p
 			className={`text-lg text-center font-semibold px-4 align-top py-5 ${
@@ -169,7 +173,7 @@ const specialPriceCell = (latestPrice: number, latestChange: number) => {
 	);
 };
 
-export const specialGainCell = (
+export const specialGainCell: React.FunctionComponent<number> = (
 	lastPrice: number,
 	retailPrice: number
 ): JSX.Element => {

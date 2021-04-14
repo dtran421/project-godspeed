@@ -2,7 +2,7 @@ import React from "react";
 import { useMemo } from "react";
 import { useTable } from "react-table";
 
-import { CardInfo } from "../../pages/index";
+import { CardInfo } from "../../pages/api/StructureTypes";
 import { specialGainCell } from "./CondensedTable";
 
 export interface DetailedTableProps {
@@ -17,17 +17,18 @@ const DetailedTable: React.FunctionComponent<DetailedTableProps> = ({
 			{
 				Header: "Product",
 				accessor: "product",
-				Cell: (props) => productCell(props.value)
+				Cell: (props: Record<string, CardInfo>) =>
+					productCell(props.value)
 			},
 			{
 				Header: "Retail Price",
 				accessor: "retailPrice",
-				Cell: (props) => statCell(props.value)
+				Cell: (props: Record<string, string>) => statCell(props.value)
 			},
 			{
 				Header: "Market Price",
 				accessor: "latestPrice",
-				Cell: (props) =>
+				Cell: (props: Record<string, Record<string, number>>) =>
 					specialStatCell(
 						props.value.latestPrice,
 						props.value.latestChange
@@ -136,7 +137,7 @@ const DetailedTable: React.FunctionComponent<DetailedTableProps> = ({
 	);
 };
 
-const productCell = (shoeInfo: CardInfo) => {
+const productCell: React.FunctionComponent<CardInfo> = (shoeInfo: CardInfo) => {
 	return (
 		<div className="p-5">
 			<p className="text-center font-semibold text-purple-500">
@@ -146,7 +147,7 @@ const productCell = (shoeInfo: CardInfo) => {
 	);
 };
 
-const statCell = (stat: string) => {
+const statCell: React.FunctionComponent<string> = (stat: string) => {
 	return (
 		<p className="text-lg text-center font-semibold px-4 align-top py-5">
 			{stat}
@@ -154,10 +155,10 @@ const statCell = (stat: string) => {
 	);
 };
 
-const specialStatCell = (
+const specialStatCell: React.FunctionComponent<number> = (
 	latestPrice: number,
 	latestChange: number
-): JSX.Element => {
+) => {
 	return (
 		<p
 			className={`text-lg text-center font-semibold px-4 align-top py-5 ${
