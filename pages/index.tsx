@@ -7,19 +7,12 @@ import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import Twemoji from "react-twemoji";
 import { ChevronLeft, ChevronRight } from "react-feather";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { CardInfo } from "./api/StructureTypes";
 import Navbar from "../components/Global/Navbar";
 import TickerBanner from "../components/Index/TickerBanner";
 import ListCard from "../components/Index/ListCard";
-
-const tickers: { ticker: string; change: number }[] = [
-	{ ticker: "ABCDEF", change: -10 },
-	{ ticker: "GHEIJF", change: +14 },
-	{ ticker: "SLDKFJ", change: -5.13 },
-	{ ticker: "12390DSF", change: +5 },
-	{ ticker: "AFLK!@$", change: +10 }
-];
 
 const trendingList = [
 	"air-jordan-1-retro-high-bred-toe",
@@ -35,15 +28,56 @@ const trendingList = [
 	"air-jordan-1-retro-high-bred-toe"
 ];
 
+const gridVariants = {
+	open: {
+		transition: { staggerChildren: 0.07, delayChildren: 0.2 }
+	},
+	closed: {
+		transition: { staggerChildren: 0.05, staggerDirection: -1 }
+	}
+};
+
+const variants = {
+	enter: (direction: number) => {
+		return {
+			x: direction * 500,
+			opacity: 0
+		};
+	},
+	center: {
+		zIndex: 1,
+		x: 0,
+		opacity: 1
+	},
+	exit: (direction: number) => {
+		return {
+			zIndex: 0,
+			x: direction * -500,
+			opacity: 0
+		};
+	}
+};
+
 const Index: React.FunctionComponent<null> = () => {
 	const [shoeInfos, updateShoeInfos] = useState({});
-	const [isLoading, setLoading] = useState(true);
-	const MAX_CARDS_PER_PAGE = 4;
-	const [trendingPage, setTrendingPage] = useState(0);
+	const [fetchingShoes, updateFetchingShoes] = useState(true);
+
+	const [tickers, updateTickers] = useState([]);
+	const [fetchingTickers, updateFetchingTickers] = useState(true);
 	const [pageIsVisible, setPageVisibility] = useState(true);
 
 	const handleVisibilityChange = (isVisible) => {
 		setPageVisibility(isVisible);
+	};
+
+	const MAX_CARDS_PER_PAGE = 4;
+	const [[trendingPage, trendingDirection], setTrendingPage] = useState([
+		0,
+		0
+	]);
+
+	const paginate = (list: string, newDirection: number) => {
+		setTrendingPage([trendingPage + newDirection, newDirection]);
 	};
 
 	useEffect(() => {
@@ -51,20 +85,36 @@ const Index: React.FunctionComponent<null> = () => {
 		script.src = "https://platform.twitter.com/widgets.js";
 		script.async = true;
 		document.body.appendChild(script); */
+		let isMounted = true;
+		if (isMounted) {
+			const newShoeInfos = shoeInfos;
+			trendingList.forEach(async (shoe) => {
+				if (!(shoe in newShoeInfos)) {
+					await fetch(`/api/fetchShoe/${shoe}`)
+						.then((response) => response.json())
+						.then((shoeData: CardInfo) => {
+							newShoeInfos[shoe] = shoeData;
+						})
+						.finally(() => {
+							updateFetchingShoes(false);
+						});
+				}
+			});
+			updateShoeInfos(newShoeInfos);
 
-		trendingList.forEach((shoe) => {
-			fetch(`/api/fetchShoe/${shoe}`)
+			fetch("/api/mostPopular")
 				.then((response) => response.json())
-				.then((shoeData: CardInfo) => {
-					if (!(shoe in shoeInfos)) {
-						const newShoeInfos = shoeInfos;
-						newShoeInfos[shoe] = shoeData;
-						updateShoeInfos(newShoeInfos);
-						console.log(shoeInfos);
-					}
+				.then(({ tickers }) => {
+					updateTickers(tickers);
 				})
-				.finally(() => setLoading(false));
-		});
+				.finally(() => {
+					updateFetchingTickers(false);
+				});
+		}
+
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 
 	const localizer = momentLocalizer(moment);
@@ -72,14 +122,14 @@ const Index: React.FunctionComponent<null> = () => {
 	return (
 		<div className="w-full bg-gray-100 min-h-screen">
 			<Navbar page={"Home"} userStatus={null} />
-			{isLoading ? (
-				<div className="flex flex-col h-full justify-center items-center">
+			{fetchingShoes || fetchingTickers ? (
+				<div className="flex flex-col h-screen justify-center items-center">
 					<p className="text-2xl font-semibold">Loading...</p>
 				</div>
 			) : (
 				<>
 					<div className="w-full flex flex-col align-center">
-						<div className="bg-gray-800">
+						<div className="bg-gray-900">
 							<PageVisibility onChange={handleVisibilityChange}>
 								{pageIsVisible && (
 									<TickerBanner tickers={tickers} />
@@ -139,65 +189,81 @@ const Index: React.FunctionComponent<null> = () => {
 												"invisible"
 											} w-16 h-16 flex items-center justify-center bg-white border border-gray-200 shadow-md rounded-full text-2xl font-bold mr-3 focus:outline-none active:bg-blue-400`}
 											onClick={() =>
-												setTrendingPage(
-													trendingPage - 1
-												)
+												paginate("Trending", -1)
 											}
 										>
 											<ChevronLeft className="text-purple-600" />
 										</button>
 									</div>
-									<div className="flex flex-col justify-center">
-										<div className="grid grid-cols-4">
-											{trendingList.map(
-												(shoeId, index) => {
-													const minIdx =
-														trendingPage *
-														MAX_CARDS_PER_PAGE;
-													if (
-														index >= minIdx &&
-														index <
-															minIdx +
-																MAX_CARDS_PER_PAGE
-													) {
-														return (
-															<ListCard
-																index={index}
-																name={
-																	shoeInfos[
-																		shoeId
-																	].name
-																}
-																imageUrl={
-																	shoeInfos[
-																		shoeId
-																	].imageUrl
-																}
-																ticker={
-																	shoeInfos[
-																		shoeId
-																	].ticker
-																}
-																marketPrice={
-																	shoeInfos[
-																		shoeId
-																	]
-																		.latestPrice
-																		.market
-																}
-																percentChange={
-																	shoeInfos[
-																		shoeId
-																	]
-																		.latestChange
-																		.percent
-																}
-															/>
-														);
+									<div className="flex">
+										<AnimatePresence
+											initial={false}
+											custom={trendingDirection}
+										>
+											<motion.div
+												className="grid grid-cols-4"
+												variants={gridVariants}
+												initial={{ opacity: 0 }}
+												animate={{
+													opacity: 1,
+													transition: {
+														ease: "easeInOut",
+														staggerChildren: 1,
+														staggerDirection: trendingDirection
 													}
-												}
-											)}
-										</div>
+												}}
+												layout
+											>
+												{trendingList.map(
+													(shoeId, index) => {
+														const minIdx =
+															trendingPage *
+															MAX_CARDS_PER_PAGE;
+														if (
+															index >= minIdx &&
+															index <
+																minIdx +
+																	MAX_CARDS_PER_PAGE
+														) {
+															return (
+																<motion.div
+																	key={index}
+																	custom={
+																		trendingDirection
+																	}
+																	variants={
+																		variants
+																	}
+																	initial="enter"
+																	animate="center"
+																	exit="exit"
+																	transition={{
+																		duration: 2,
+																		x: {
+																			type:
+																				"spring",
+																			stiffness: 300,
+																			damping: 30
+																		},
+																		opacity: {
+																			duration: 0.3
+																		}
+																	}}
+																>
+																	<ListCard
+																		shoeInfo={
+																			shoeInfos[
+																				shoeId
+																			]
+																		}
+																	/>
+																</motion.div>
+															);
+														}
+													}
+												)}
+											</motion.div>
+										</AnimatePresence>
 									</div>
 									{
 										<div className="flex items-center">
@@ -211,9 +277,7 @@ const Index: React.FunctionComponent<null> = () => {
 													) && "invisible"
 												} w-16 h-16 flex items-center justify-center bg-white border border-gray-200 shadow-md rounded-full text-2xl font-bold ml-3 focus:outline-none active:bg-blue-400`}
 												onClick={() =>
-													setTrendingPage(
-														trendingPage + 1
-													)
+													paginate("Trending", 1)
 												}
 											>
 												<ChevronRight className="text-purple-600" />

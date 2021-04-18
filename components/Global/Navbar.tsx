@@ -3,13 +3,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Head from "next/head";
-import { useRouter } from "next/router";
+import { NextRouter, withRouter } from "next/router";
 import { motion } from "framer-motion";
 
 import { firebase } from "../../pages/_app";
 import Navlink from "./Navlink";
 
 interface NavbarProps {
+	router: NextRouter;
 	page: string;
 	userStatus: boolean | null;
 }
@@ -17,29 +18,31 @@ interface NavbarProps {
 const pages = ["News", "Drops", "Dashboard"];
 
 const Navbar: React.FunctionComponent<NavbarProps> = ({
+	router,
 	page,
 	userStatus
 }: NavbarProps) => {
-	const router = useRouter();
 	const [loggedIn, setLoggedIn] = useState(userStatus);
 	const [showMenu, toggleMenu] = useState(false);
 
 	useEffect(() => {
-		let isMounted = false;
-		if (userStatus === null && !isMounted) {
+		let isMounted = true;
+		if (userStatus === null) {
 			firebase.auth().onAuthStateChanged(function (user) {
-				if (user) {
-					setLoggedIn(true);
-				} else {
-					if (page !== "Login") {
-						router.push("/login");
+				if (isMounted) {
+					if (user) {
+						setLoggedIn(true);
+					} else {
+						if (page === "Dashboard") {
+							router.push("/login");
+						}
 					}
 				}
 			});
 		}
 
 		return () => {
-			isMounted = true;
+			isMounted = false;
 		};
 	}, []);
 
@@ -57,7 +60,7 @@ const Navbar: React.FunctionComponent<NavbarProps> = ({
 	};
 
 	return (
-		<>
+		<div className="sticky top-0 bg-white z-20">
 			<Head>
 				<title>{page} | Godspeed</title>
 				<link rel="icon" href="/favicon.ico" />
@@ -98,7 +101,7 @@ const Navbar: React.FunctionComponent<NavbarProps> = ({
 									</p>
 									{showMenu && (
 										<motion.div
-											className="absolute z-10 w-60 rounded-lg flex flex-col divide-y-2 divide-gray-600 p-2 top-16 right-8 bg-blue-100 border border-gray-300 shadow-md"
+											className="absolute z-10 w-60 rounded-lg flex flex-col divide-y-2 divide-gray-600 p-2 top-14 right-8 bg-blue-100 border border-gray-300 shadow-md"
 											onHoverStart={() => {
 												toggleMenu(true);
 											}}
@@ -129,8 +132,8 @@ const Navbar: React.FunctionComponent<NavbarProps> = ({
 					</div>
 				</div>
 			</div>
-		</>
+		</div>
 	);
 };
 
-export default Navbar;
+export default withRouter(Navbar);

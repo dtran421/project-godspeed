@@ -1,7 +1,6 @@
-import React from "react";
-import { useState } from "react";
-import { useRouter } from "next/router";
+import React, { Dispatch, SetStateAction, useState } from "react";
 import { Formik, Form, Field } from "formik";
+import { Eye, EyeOff } from "react-feather";
 
 import { firebase } from "../../pages/_app";
 import { RegisterSchema, LoginSchema } from "./ValidationSchema";
@@ -13,8 +12,6 @@ const intialValues = {
 };
 
 const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
-	const router = useRouter();
-
 	const [mode, setMode] = useState("Login");
 	const [loginError, updateError] = useState({});
 	const [showPassword, togglePassword] = useState(false);
@@ -23,17 +20,9 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 		firebase
 			.auth()
 			.signInWithEmailAndPassword(values.email, values.password)
-			.then((userCredential) => {
-				const user = userCredential.user;
-				console.log(user);
-				firebase.auth().onAuthStateChanged((user) => {
-					if (user) {
-						router.push("/dashboard");
-					} else {
-						console.log("Something went wrong!");
-						updateError({ message: "Something went wrong!" });
-					}
-				});
+			.then((/* userCredential */) => {
+				// const user = userCredential.user;
+				// router.push("/dashboard");
 			})
 			.catch((error) => {
 				const errorCode = error.code;
@@ -126,15 +115,10 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 									type={showPassword ? "text" : "password"}
 									className={`w-full ${inputClass}`}
 								/>
-								<button
-									type="button"
-									className="absolute right-0 top-0 vertical-align rounded-full bg-purple-400 px-2 py-1 mr-6 focus:outline-none"
-									onClick={() =>
-										togglePassword(!showPassword)
-									}
-								>
-									i
-								</button>
+								<PasswordToggle
+									showPassword={showPassword}
+									togglePassword={togglePassword}
+								/>
 							</div>
 
 							{mode === "Register" && (
@@ -152,15 +136,10 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 											}
 											className={`w-full ${inputClass}`}
 										/>
-										<button
-											type="button"
-											className="absolute right-0 top-0 vertical-align rounded-full bg-purple-400 px-2 py-1 mr-6 focus:outline-none"
-											onClick={() =>
-												togglePassword(!showPassword)
-											}
-										>
-											i
-										</button>
+										<PasswordToggle
+											showPassword={showPassword}
+											togglePassword={togglePassword}
+										/>
 									</div>
 								</>
 							)}
@@ -213,7 +192,7 @@ const InputHeader: React.FunctionComponent<HeaderProps> = ({
 	return <p className="text-xl mt-4 mb-1">{headerText}</p>;
 };
 
-export interface ErrorProps {
+interface ErrorProps {
 	errors: Record<string, string>;
 	touched: Record<string, boolean>;
 }
@@ -234,6 +213,31 @@ const Error: React.FunctionComponent<ErrorProps> = ({
 			{message}
 		</p>
 	) : null;
+};
+
+interface PasswordToggleProps {
+	showPassword: boolean;
+	togglePassword: Dispatch<SetStateAction<boolean>>;
+}
+
+const PasswordToggle: React.FunctionComponent<PasswordToggleProps> = ({
+	showPassword,
+	togglePassword
+}: PasswordToggleProps) => {
+	const iconClasses = "text-purple-500 opacity-75 active:text-purple-700";
+	return (
+		<button
+			type="button"
+			className="absolute right-0 top-0 vertical-align rounded-full px-2 py-1 mr-6 focus:outline-none"
+			onClick={() => togglePassword(!showPassword)}
+		>
+			{showPassword ? (
+				<EyeOff className={iconClasses} size={20} />
+			) : (
+				<Eye className={iconClasses} size={20} />
+			)}
+		</button>
+	);
 };
 
 export default LoginForm;

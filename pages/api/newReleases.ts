@@ -17,7 +17,7 @@ const headersConfig = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fetchNewReleases = (req, res) => {
+const fetchNewReleases = () => {
 	const time = Math.floor(new Date().getTime() / 1000);
 	return new Promise((resolve, reject) => {
 		fetch(
@@ -81,7 +81,7 @@ const fetchNewReleases = (req, res) => {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-	const data = await fetchNewReleases(req, res);
+	const data = await fetchNewReleases();
 	res.json(data);
 };
 

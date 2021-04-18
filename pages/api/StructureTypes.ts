@@ -26,3 +26,8 @@ export interface ReleaseInfo {
 		bid: number;
 	};
 }
+
+export interface TickerInfo {
+	ticker: string;
+	latestChange: number;
+}

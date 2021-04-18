@@ -17,7 +17,7 @@ const headersConfig = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fetchShoes = (req, res) => {
+const fetchShoes = (req) => {
 	return new Promise((resolve, reject) => {
 		fetch(
 			`https://stockx.com/api/products/${req.query.shoeId}?includes=market&currency=USD`,
@@ -58,7 +58,7 @@ const fetchShoes = (req, res) => {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-	const data = await fetchShoes(req, res);
+	const data = await fetchShoes(req);
 	res.json(data);
 };
 

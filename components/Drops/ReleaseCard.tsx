@@ -1,8 +1,8 @@
 import React from "react";
-import Popup from "reactjs-popup";
-import { X, PlusCircle } from "react-feather";
+import { BsCaretDownFill, BsCaretUpFill } from "react-icons/bs";
 
 import { ReleaseInfo } from "../../pages/api/StructureTypes";
+import Modal from "../../components/Drops/Modal";
 
 interface ReleaseCardProps {
 	releaseInfo: ReleaseInfo;
@@ -20,40 +20,7 @@ const ReleaseCard: React.FunctionComponent<ReleaseCardProps> = ({
 				<p className="absolute -top-5 -left-5 p-2 text-lg font-semibold">
 					{prices.retail !== 0 ? `$${prices.retail}` : "Not reported"}
 				</p>
-				<Popup
-					trigger={
-						<button className="absolute -top-5 -right-5 text-lg text-purple-500 font-semibold p-2 focus:outline-none">
-							<PlusCircle size={28} />
-						</button>
-					}
-					modal
-				>
-					{(close) => (
-						<div className="w-screen h-screen flex justify-center items-center bg-opacity-70 bg-gray-700">
-							<div className="flex flex-col bg-white rounded-lg">
-								<div className="flex justify-end">
-									<button
-										className="inline-block text-lg font-semibold focus:outline-none px-4 py-2"
-										onClick={() => close()}
-									>
-										<X size={28} />
-									</button>
-								</div>
-								<div className="flex flex-col items-center px-6 pb-6">
-									<h1 className="text-3xl font-medium">
-										{name}
-									</h1>
-									<img
-										width="250"
-										height="250"
-										src={imageUrl}
-										className="rounded-lg m-4"
-									/>
-								</div>
-							</div>
-						</div>
-					)}
-				</Popup>
+				<Modal name={name} imageUrl={imageUrl} type={"Normal"} />
 				<img width="175" src={imageUrl} />
 			</div>
 			<div className="flex justify-between items-center mb-3">
@@ -70,13 +37,25 @@ const ReleaseCard: React.FunctionComponent<ReleaseCardProps> = ({
 			</div>
 			<div className="flex flex-col">
 				<div className="w-full">
-					<div className="grid grid-cols-2 gap-y-1 gap-x-2">
-						<span className="text-lg text-center font-bold text-red-500 px-4">
-							ASK
-						</span>
-						<span className="text-lg text-center font-bold text-green-500 px-4">
-							BID
-						</span>
+					<div className="grid grid-cols-2 gap-x-2">
+						<div className="flex items-center justify-center">
+							<BsCaretDownFill
+								size={16}
+								className="inline align-middle text-red-500"
+							/>
+							<p className="text-lg text-center font-bold text-red-500 px-1">
+								ASK
+							</p>
+						</div>
+						<div className="flex items-center justify-center">
+							<BsCaretUpFill
+								size={16}
+								className="inline align-middle text-green-500"
+							/>
+							<p className="text-lg text-center font-bold text-green-500 px-1">
+								BID
+							</p>
+						</div>
 						<a
 							href={`https://stockx.com/sell/${uuid}/${urlKey}`}
 							target="_blank"

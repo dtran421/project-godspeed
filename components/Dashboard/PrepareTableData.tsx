@@ -4,9 +4,7 @@ const prepareTableData = (
 	shoeInfos: { [id: string]: CardInfo },
 	activeList: string[]
 ): Record<string, string>[] => {
-	console.log("test ", shoeInfos);
 	if (Object.keys(shoeInfos).length === 0) return [];
-	// console.log(shoeInfos, activeList);
 	const tableData = [];
 	activeList.map((shoeId) => {
 		const shoeInfo = shoeInfos[shoeId as string];

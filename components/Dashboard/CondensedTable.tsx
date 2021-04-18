@@ -133,7 +133,7 @@ const productCell: React.FunctionComponent<CardInfo> = (shoeInfo: CardInfo) => {
 			<div className="flex flex-col">
 				<p className="text-xl font-bold">{name}</p>
 				<div className="flex flex-row justify-between">
-					<p className="font-semibold text-purple-500">{ticker}</p>
+					<p className="font-semibold text-gray-500">{ticker}</p>
 					<p className="font-semibold">${retailPrice}</p>
 				</div>
 			</div>

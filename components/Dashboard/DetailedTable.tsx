@@ -140,9 +140,7 @@ const DetailedTable: React.FunctionComponent<DetailedTableProps> = ({
 const productCell: React.FunctionComponent<CardInfo> = (shoeInfo: CardInfo) => {
 	return (
 		<div className="p-5">
-			<p className="text-center font-semibold text-purple-500">
-				{shoeInfo.ticker}
-			</p>
+			<p className="text-center font-semibold">{shoeInfo.ticker}</p>
 		</div>
 	);
 };

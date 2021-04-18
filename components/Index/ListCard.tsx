@@ -1,28 +1,29 @@
 import React from "react";
+import { BsCaretUpFill, BsCaretDownFill } from "react-icons/bs";
+
+import { CardInfo } from "../../pages/api/StructureTypes";
 
 interface ListCardProps {
-	index: number;
-	name: string;
-	imageUrl: string;
-	ticker: string;
-	marketPrice: number;
-	percentChange: number;
+	shoeInfo: CardInfo;
 }
 
 const ListCard: React.FunctionComponent<ListCardProps> = ({
-	index,
-	name,
-	imageUrl,
-	ticker,
-	marketPrice,
-	percentChange
+	shoeInfo
 }: ListCardProps) => {
-	const latestChange = Math.round(percentChange * 10000) / 100;
+	const {
+		name,
+		imageUrl,
+		ticker,
+		latestPrice: { market: marketPrice },
+		latestChange: { percent }
+	} = shoeInfo;
+	const percentChange = Math.round(percent * 10000) / 100;
+	const iconProps = {
+		size: 16,
+		className: "inline align-middle"
+	};
 	return (
-		<div
-			key={index}
-			className="rounded-xl px-4 py-6 mx-3 w-56 bg-white shadow-lg border border-gray-200"
-		>
+		<div className="rounded-xl px-4 py-6 mx-3 w-56 bg-white shadow-lg border border-gray-200">
 			<div className="flex justify-center">
 				<img
 					width="150"
@@ -37,13 +38,19 @@ const ListCard: React.FunctionComponent<ListCardProps> = ({
 			</p>
 			<div className="flex justify-center mt-4">
 				<p
-					className={`inline-block font-semibold rounded-full px-3 py-2 ${
-						latestChange >= 0
+					className={`inline-block align-middle text-center font-semibold rounded-full px-3 py-2 ${
+						percentChange >= 0
 							? "text-green-500 bg-green-100"
 							: "text-red-500 bg-red-100"
 					}`}
 				>
-					${marketPrice} ({latestChange}
+					${marketPrice} (
+					{percentChange >= 0 ? (
+						<BsCaretUpFill {...iconProps} />
+					) : (
+						<BsCaretDownFill {...iconProps} />
+					)}
+					{percentChange}
 					%)
 				</p>
 			</div>

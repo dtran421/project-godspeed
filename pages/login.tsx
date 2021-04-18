@@ -1,22 +1,32 @@
-import React from "react";
-import { useEffect } from "react";
-import { useRouter } from "next/router";
+import React, { useEffect } from "react";
+import { NextRouter, withRouter } from "next/router";
 
 import { firebase } from "./_app";
 import Navbar from "../components/Global/Navbar";
 import LoginForm from "../components/Login/LoginForm";
 
-const Login: React.FunctionComponent<null> = () => {
-	const router = useRouter();
+interface LoginProps {
+	router: NextRouter;
+}
 
+const Login: React.FunctionComponent<LoginProps> = ({ router }: LoginProps) => {
 	useEffect(() => {
+		let isMounted = true;
 		firebase.auth().onAuthStateChanged(function (user) {
 			if (user) {
-				router.push("/dashboard");
-			} else {
-				router.push("/login");
+				if (isMounted) {
+					if (router.query && router.query.from) {
+						router.push(router.query.from as string);
+					} else {
+						router.push("/dashboard");
+					}
+				}
 			}
 		});
+
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 
 	return (
@@ -33,4 +43,4 @@ const Login: React.FunctionComponent<null> = () => {
 	);
 };
 
-export default Login;
+export default withRouter(Login);

@@ -44,10 +44,10 @@ const Dashboard: React.FunctionComponent<null> = () => {
 	};
 
 	useEffect(() => {
-		let mounted = true;
+		let isMounted = true;
 		firebase.auth().onAuthStateChanged((user) => {
 			if (user) {
-				if (mounted) {
+				if (isMounted) {
 					fetchWatchLists(user.uid);
 				}
 			} else {
@@ -56,7 +56,7 @@ const Dashboard: React.FunctionComponent<null> = () => {
 		});
 
 		return () => {
-			mounted = false;
+			isMounted = false;
 		};
 	}, []);
 
