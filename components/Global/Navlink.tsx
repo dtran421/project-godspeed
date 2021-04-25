@@ -8,7 +8,7 @@ interface NavlinkProps {
 const Navlink: React.FunctionComponent<NavlinkProps> = ({
 	text
 }: NavlinkProps) => (
-	<div className="flex flex-col mx-10 justify-center">
+	<div className="flex flex-col mx-6 justify-center">
 		<Link href={`/${text.toLowerCase()}`}>
 			<p className="text-xl text-center cursor-pointer">{text}</p>
 		</Link>

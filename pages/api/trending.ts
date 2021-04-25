@@ -1,27 +1,18 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { TickerInfo, ShowcaseInfo } from "./StructureTypes";
+import { ShowcaseInfo } from "./StructureTypes";
 import { headersConfig } from "../_app";
-import { MAX_SHOES_PER_SHOWCASE } from "./trending";
+
+export const MAX_SHOES_PER_SHOWCASE = 20;
 
 const fetchMostPopular = () => {
 	return new Promise((resolve, reject) => {
 		fetch(
-			`https://stockx.com/api/browse?productCategory=sneakers&sort=most-active&order=DESC`,
+			`https://stockx.com/api/browse?productCategory=sneakers`,
 			headersConfig
 		)
 			.then((response) => response.json())
 			.then((results) => {
-				const tickers = results.Products.map(
-					({ tickerSymbol, market }) => {
-						return {
-							ticker: tickerSymbol,
-							latestChange:
-								Math.round(market.changePercentage * 10000) /
-								100
-						} as TickerInfo;
-					}
-				);
 				const mostPopular = results.Products.reduce(
 					(
 						result,
@@ -31,8 +22,7 @@ const fetchMostPopular = () => {
 							urlKey,
 							media: { imageUrl },
 							tickerSymbol,
-							retailPrice,
-							market: { lastSale }
+							market: { lastSale, changePercentage }
 						},
 						index
 					) => {
@@ -44,8 +34,7 @@ const fetchMostPopular = () => {
 								imageUrl,
 								ticker: tickerSymbol,
 								latestPrice: lastSale,
-								latestChange:
-									(lastSale - retailPrice) / retailPrice
+								latestChange: changePercentage
 							} as ShowcaseInfo);
 						}
 						return result;
@@ -53,7 +42,6 @@ const fetchMostPopular = () => {
 					[]
 				);
 				resolve({
-					tickers,
 					mostPopular
 				});
 			})

@@ -1,33 +1,44 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
+import { NextRouter, withRouter } from "next/router";
 
 import { firebase, db } from "../pages/_app";
 import WatchlistList from "../components/Dashboard/WatchlistList";
 import WatchlistDisplay from "../components/Dashboard/WatchlistDisplay";
 import Navbar from "../components/Global/Navbar";
 
-const Dashboard: React.FunctionComponent<null> = () => {
-	const router = useRouter();
-	const [isFetching, setFetching] = useState(true);
-	const [activeListIndex, setActiveList] = useState(-1);
-	const [watchlists, updateWatchlists] = useState([]);
-	const [watchlistsData, updateWatchlistsData] = useState({});
+interface DashboardProps {
+	router: NextRouter;
+}
 
-	const fetchWatchLists = (userUID) => {
+const Dashboard: React.FunctionComponent<DashboardProps> = ({
+	router
+}: DashboardProps) => {
+	const [
+		[isFetching, watchlists, watchlistsData],
+		updateWatchlists
+	] = useState([true, [], {}]);
+	const [activeListIndex, setActiveList] = useState(-1);
+
+	const fetchWatchlists = (userUID) => {
 		db.collection("watchlists")
 			.doc(userUID)
+			.collection("lists")
 			.get()
-			.then((doc) => {
-				if (doc.exists) {
-					console.log("Document data:", doc.data());
-					updateWatchlistsData(doc.data());
-					updateWatchlists(Object.keys(doc.data()));
+			.then((listDocs) => {
+				const fetchedWatchlists = [],
+					fetchedWatchlistsData = {};
+				listDocs.forEach((listDoc) => {
+					fetchedWatchlists.push(listDoc.id);
+					fetchedWatchlistsData[listDoc.id] = listDoc.data().shoes;
+				});
+				updateWatchlists([
+					false,
+					fetchedWatchlists,
+					fetchedWatchlistsData
+				]);
+				if (fetchedWatchlists.length > 0) {
 					setActiveList(0);
-					setFetching(false);
-				} else {
-					console.log("No such document!");
-					setFetching(false);
 				}
 			})
 			.catch((error) => {
@@ -35,12 +46,13 @@ const Dashboard: React.FunctionComponent<null> = () => {
 			});
 	};
 
-	const updateWatchlistsAfterCreation = (lists: string[]) => {
-		updateWatchlists(lists);
-		const tempWatchlistsData = watchlistsData;
-		tempWatchlistsData[lists[lists.length - 1]] = { shoes: [] };
-		updateWatchlistsData(tempWatchlistsData);
-		setActiveList(lists.length - 1);
+	const updateWatchlistsAfterCreation = (newList: string) => {
+		updateWatchlists([
+			false,
+			[...watchlists, newList],
+			{ ...watchlistsData, [newList]: [] }
+		]);
+		setActiveList(watchlists.length);
 	};
 
 	useEffect(() => {
@@ -48,10 +60,13 @@ const Dashboard: React.FunctionComponent<null> = () => {
 		firebase.auth().onAuthStateChanged((user) => {
 			if (user) {
 				if (isMounted) {
-					fetchWatchLists(user.uid);
+					fetchWatchlists(user.uid);
 				}
 			} else {
-				router.push("/login");
+				router.push({
+					pathname: "/login",
+					query: { from: router.pathname }
+				});
 			}
 		});
 
@@ -73,7 +88,7 @@ const Dashboard: React.FunctionComponent<null> = () => {
 								</p>
 							</div>
 						) : (
-							<div className="flex items-start mx-auto max-w-7xl">
+							<>
 								<WatchlistList
 									lists={watchlists}
 									active={activeListIndex}
@@ -82,16 +97,20 @@ const Dashboard: React.FunctionComponent<null> = () => {
 										updateWatchlistsAfterCreation
 									}
 								/>
-								<WatchlistDisplay
-									activeList={
-										activeListIndex >= 0
-											? watchlistsData[
-													watchlists[activeListIndex]
-											  ].shoes
-											: null
-									}
-								/>
-							</div>
+								<div className="flex items-start mx-auto max-w-7xl">
+									<WatchlistDisplay
+										shoeChildren={
+											activeListIndex >= 0
+												? watchlistsData[
+														watchlists[
+															activeListIndex
+														]
+												  ]
+												: null
+										}
+									/>
+								</div>
+							</>
 						)}
 					</div>
 				</div>
@@ -101,4 +120,4 @@ const Dashboard: React.FunctionComponent<null> = () => {
 	);
 };
 
-export default Dashboard;
+export default withRouter(Dashboard);

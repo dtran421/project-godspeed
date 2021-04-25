@@ -1,8 +1,8 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
+import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 
 import { firebase, db } from "../../pages/_app";
 
@@ -10,7 +10,7 @@ interface WatchlistListProps {
 	lists: string[];
 	active: number;
 	setList: React.Dispatch<React.SetStateAction<number>>;
-	updateWatchlistsAfterCreation: (lists: string[]) => void;
+	updateWatchlistsAfterCreation: (newList: string) => void;
 }
 
 const ListSchema = Yup.object().shape({
@@ -24,23 +24,30 @@ const WatchlistList: React.FunctionComponent<WatchlistListProps> = ({
 	updateWatchlistsAfterCreation
 }: WatchlistListProps) => {
 	const router = useRouter();
+
+	const [showMenu, toggleMenu] = useState(lists.length > 0 ? false : true);
+
 	const [showInput, toggleInput] = useState(false);
 	const [creationError, setCreationError] = useState({});
 
-	const createNewList = (values, { setSubmitting }) => {
+	const createNewList = ({ listName }, { setSubmitting }) => {
 		firebase.auth().onAuthStateChanged((user) => {
 			if (user) {
 				db.collection("watchlists")
 					.doc(user.uid)
-					.update({
-						[values.listName]: { shoes: [] }
-					})
+					.collection("lists")
+					.doc(listName)
+					.set(
+						{
+							shoes: {}
+						},
+						{ merge: true }
+					)
 					.then(() => {
 						console.log("Document successfully written!");
 						toggleInput(!showInput);
 						setSubmitting(false);
-						lists.push(values.listName);
-						updateWatchlistsAfterCreation(lists);
+						updateWatchlistsAfterCreation(listName);
 					})
 					.catch((error) => {
 						console.error("Error writing document: ", error);
@@ -54,95 +61,127 @@ const WatchlistList: React.FunctionComponent<WatchlistListProps> = ({
 	};
 
 	return (
-		<div className="w-1/4 inline-block bg-white shadow-lg rounded-lg mr-10 py-8">
-			<h1 className="text-2xl text-center font-semibold pb-8">
-				Watchlists
-			</h1>
-			{lists.length > 0 ? (
-				lists.map((listName, index) => {
-					return (
-						<div
-							key={index}
-							className={`border-l-4 ${
-								active === index
-									? "border-purple-600 bg-purple-100"
-									: "border-transparent"
-							} cursor-pointer`}
-							onClick={() => {
-								setList(index);
-							}}
-						>
-							<p className="text-lg px-6 py-2">{listName}</p>
-						</div>
-					);
-				})
-			) : (
-				<div>
-					<p className="text-lg text-center text-gray-700 p-4 mx-4 mb-6">
-						No watchlists yet. Create your first one:
-					</p>
-				</div>
-			)}
-			<div className="mt-8 text-center">
-				{!showInput && (
-					<button
-						className="rounded-full border-2 border-purple-600 text-purple-600 font-medium text-lg mx-6 px-6 py-1 focus:outline-none hover:bg-purple-600 hover:text-white"
-						onClick={() => toggleInput(!showInput)}
-					>
-						New list
-					</button>
-				)}
-				{showInput && (
-					<Formik
-						initialValues={{ listName: "" }}
-						validationSchema={ListSchema}
-						onSubmit={(values, { setSubmitting }) => {
-							createNewList(values, { setSubmitting });
-						}}
-					>
-						{({ errors, touched, resetForm, isSubmitting }) => {
-							return (
-								<Form className="mx-6">
-									<div>
-										<Field
-											name="listName"
-											placeholder="List Name"
-											className="bg-blue-50 rounded-lg border-2 border-blue-300 font-medium text-lg pl-3 py-2 focus:outline-none focus:border-purple-400"
-										/>
-										<div className="w-full grid grid-cols-2 gap-2 my-3">
-											<button
-												type="button"
-												className="text-lg rounded-lg border-2 border-purple-600 text-purple-600 py-1 px-2 focus:outline-none"
-												onClick={() => {
-													toggleInput(!showInput);
-													resetForm();
-												}}
-											>
-												Cancel
-											</button>
-											<button
-												type="submit"
-												className="text-lg font-medium rounded-lg bg-purple-600 text-white py-1 px-2 focus:outline-none disabled:cursor-not-allowed"
-												disabled={isSubmitting}
-											>
-												Create
-											</button>
-										</div>
-									</div>
-									<Error
-										errors={
-											"message" in creationError
-												? creationError
-												: errors
-										}
-										touched={touched}
-									/>
-								</Form>
-							);
-						}}
-					</Formik>
-				)}
+		<div
+			className={`fixed left-0 top-16 h-full z-10 ${
+				showMenu ? "w-1/6" : "w-16"
+			} bg-white shadow-lg border-r-2 border-gray-200 py-2`}
+		>
+			<div className={`${showMenu ? "px-6" : "px-2"} my-4`}>
+				<button
+					className="flex items-center justify-center w-full rounded-md py-1 border-2 border-gray-700 text-lg font-medium focus:outline-none hover:text-purple-500 active:text-purple-700"
+					onClick={() => toggleMenu(!showMenu)}
+				>
+					{showMenu ? (
+						<>
+							<FiArrowLeft className="mr-2" /> {"Collapse"}
+						</>
+					) : (
+						<FiArrowRight />
+					)}
+				</button>
 			</div>
+			{showMenu && (
+				<>
+					<h1 className="text-2xl text-center font-semibold mb-2">
+						Watchlists
+					</h1>
+					{lists.length > 0 ? (
+						lists.map((listName, index) => {
+							return (
+								<div
+									key={index}
+									className={`border-l-4 ${
+										active === index
+											? "border-purple-600 bg-purple-100"
+											: "border-transparent"
+									} cursor-pointer`}
+									onClick={() => {
+										setList(index);
+										toggleMenu(!showMenu);
+									}}
+								>
+									<p className="text-lg px-6 py-2">
+										{listName}
+									</p>
+								</div>
+							);
+						})
+					) : (
+						<div>
+							<p className="text-lg text-center text-gray-700 p-4 mx-4 mb-6">
+								No watchlists yet. Create your first one:
+							</p>
+						</div>
+					)}
+					<div className="mt-8 text-center">
+						{!showInput && (
+							<button
+								className="rounded-full border-2 border-purple-600 text-purple-600 font-medium text-lg mx-6 px-6 py-1 focus:outline-none hover:bg-purple-600 hover:text-white"
+								onClick={() => toggleInput(!showInput)}
+							>
+								New list
+							</button>
+						)}
+						{showInput && (
+							<Formik
+								initialValues={{ listName: "" }}
+								validationSchema={ListSchema}
+								onSubmit={(values, { setSubmitting }) => {
+									createNewList(values, { setSubmitting });
+								}}
+							>
+								{({
+									errors,
+									touched,
+									resetForm,
+									isSubmitting
+								}) => {
+									return (
+										<Form className="px-4">
+											<div>
+												<Field
+													name="listName"
+													placeholder="List Name"
+													className="bg-blue-50 rounded-lg border-2 border-blue-300 font-medium pl-3 py-2 focus:outline-none focus:border-purple-400"
+												/>
+												<div className="w-full grid grid-cols-2 gap-2 my-3">
+													<button
+														type="button"
+														className="text-lg rounded-lg border-2 border-purple-600 text-purple-600 px-1 focus:outline-none"
+														onClick={() => {
+															toggleInput(
+																!showInput
+															);
+															resetForm();
+														}}
+													>
+														Cancel
+													</button>
+													<button
+														type="submit"
+														className="text-lg font-medium rounded-lg bg-purple-600 text-white py-1 px-2 focus:outline-none disabled:cursor-not-allowed"
+														disabled={isSubmitting}
+													>
+														Create
+													</button>
+												</div>
+											</div>
+											<Error
+												errors={
+													"message" in creationError
+														? creationError
+														: errors
+												}
+												touched={touched}
+											/>
+										</Form>
+									);
+								}}
+							</Formik>
+						)}
+					</div>
+				</>
+			)}
 		</div>
 	);
 };

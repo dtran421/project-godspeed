@@ -5,7 +5,7 @@ import { BsCaretUpFill, BsCaretDownFill } from "react-icons/bs";
 import { ReleaseInfo } from "../../pages/api/StructureTypes";
 import { days, months } from "../../pages/drops";
 
-import Modal from "../../components/Drops/Modal";
+import Modal from "../Global/Modal";
 
 export interface HighlightReleaseCardProps {
 	releaseInfo: ReleaseInfo;
@@ -26,7 +26,7 @@ const HighlightReleaseCard: React.FunctionComponent<HighlightReleaseCardProps> =
 				showBorder && "border-b-2 border-gray-200"
 			}`}
 		>
-			<div className="flex flex-col items-center justify-center border-r-2 border-gray-200">
+			<div className="flex flex-col items-center justify-center">
 				<h1 className="text-5xl font-bold uppercase">
 					{days[moment(releaseDate).day()]}
 				</h1>
@@ -39,7 +39,7 @@ const HighlightReleaseCard: React.FunctionComponent<HighlightReleaseCardProps> =
 			</div>
 			<div className="col-span-3 flex m-4">
 				<img
-					width="200"
+					width="300"
 					src={imageUrl}
 					className="flex items-center justify-center mr-4 p-4 w-52"
 				/>
@@ -100,6 +100,8 @@ const HighlightReleaseCard: React.FunctionComponent<HighlightReleaseCardProps> =
 						</div>
 						<Modal
 							name={name}
+							uuid={uuid}
+							urlKey={urlKey}
 							imageUrl={imageUrl}
 							type={"Highlight"}
 						/>

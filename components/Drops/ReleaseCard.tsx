@@ -2,25 +2,28 @@ import React from "react";
 import { BsCaretDownFill, BsCaretUpFill } from "react-icons/bs";
 
 import { ReleaseInfo } from "../../pages/api/StructureTypes";
-import Modal from "../../components/Drops/Modal";
+import Modal from "../Global/Modal";
 
 interface ReleaseCardProps {
 	releaseInfo: ReleaseInfo;
 }
 
 const ReleaseCard: React.FunctionComponent<ReleaseCardProps> = ({
-	releaseInfo
+	releaseInfo: { urlKey, uuid, name, ticker, imageUrl, prices }
 }: ReleaseCardProps) => {
-	const { urlKey, uuid, name, ticker, imageUrl, prices } = {
-		...releaseInfo
-	};
 	return (
 		<div className="flex flex-col justify-between w-full bg-white border border-gray-300 shadow-lg rounded-xl my-6 p-6">
 			<div className="relative flex justify-center p-4">
 				<p className="absolute -top-5 -left-5 p-2 text-lg font-semibold">
 					{prices.retail !== 0 ? `$${prices.retail}` : "Not reported"}
 				</p>
-				<Modal name={name} imageUrl={imageUrl} type={"Normal"} />
+				<Modal
+					name={name}
+					uuid={uuid}
+					urlKey={urlKey}
+					imageUrl={imageUrl}
+					type={"Normal"}
+				/>
 				<img width="175" src={imageUrl} />
 			</div>
 			<div className="flex justify-between items-center mb-3">

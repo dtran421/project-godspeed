@@ -22,7 +22,7 @@ const TickerBanner: React.FunctionComponent<TickerBannerProps> = ({
 					}`
 				};
 				return (
-					<div className="flex items-center px-8 py-2">
+					<div className="flex justify-center items-center px-8 py-3">
 						<h1 className="text-xl text-white font-semibold mr-2">
 							{ticker}
 						</h1>

@@ -7,6 +7,20 @@ import "firebase/analytics";
 import "firebase/auth";
 import "firebase/firestore";
 
+// Initializing the cors middleware
+export const headersConfig = {
+	headers: {
+		"Content-Type": "application/json",
+		"user-agent":
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36",
+		"sec-fetch-dest": "none",
+		accept: "*/*",
+		"sec-fetch-site": "cross-site",
+		"sec-fetch-mode": "cors",
+		"accept-language": "en-US"
+	}
+};
+
 const firebaseConfig = {
 	apiKey: "AIzaSyD7Nmcz7MRdpwlMPz3GNxDdmB1GEgK0zck",
 	authDomain: "project-godspeed-0421.firebaseapp.com",

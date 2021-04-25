@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction, useState } from "react";
 import { Formik, Form, Field } from "formik";
-import { Eye, EyeOff } from "react-feather";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 import { firebase } from "../../pages/_app";
 import { RegisterSchema, LoginSchema } from "./ValidationSchema";
@@ -232,9 +232,9 @@ const PasswordToggle: React.FunctionComponent<PasswordToggleProps> = ({
 			onClick={() => togglePassword(!showPassword)}
 		>
 			{showPassword ? (
-				<EyeOff className={iconClasses} size={20} />
+				<FiEyeOff className={iconClasses} size={20} />
 			) : (
-				<Eye className={iconClasses} size={20} />
+				<FiEye className={iconClasses} size={20} />
 			)}
 		</button>
 	);

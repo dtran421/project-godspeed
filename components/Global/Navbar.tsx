@@ -60,31 +60,39 @@ const Navbar: React.FunctionComponent<NavbarProps> = ({
 	};
 
 	return (
-		<div className="sticky top-0 bg-white z-20">
+		<div className="sticky top-0 h-16 bg-white z-20">
 			<Head>
 				<title>{page} | Godspeed</title>
 				<link rel="icon" href="/favicon.ico" />
 			</Head>
 			<div className="relative w-full bg-white border-gray-200 border-b-2">
-				<div className="grid grid-cols-3 px-10 py-2">
-					<Link href="/">
-						<div className="flex items-center cursor-pointer">
-							<div className="px-2">
+				<div className="grid grid-cols-2 px-10 py-3">
+					<div className="flex">
+						<Link href="/">
+							<div className="flex items-center cursor-pointer mr-4">
 								<Image
 									width={40}
 									height={45}
 									src="/godspeed.png"
 								/>
+								<h1 className="font-bold text-3xl ml-2">
+									Godspeed
+								</h1>
 							</div>
-							<h1 className="font-bold text-3xl">Godspeed</h1>
+						</Link>
+						<div className="flex">
+							{pages.map((text, index) => {
+								return <Navlink key={index} text={text} />;
+							})}
 						</div>
-					</Link>
-					<div className="grid grid-cols-3 justify-center">
-						{pages.map((text, index) => {
-							return <Navlink key={index} text={text} />;
-						})}
 					</div>
 					<div className="w-full flex justify-end items-center px-2">
+						<input
+							type="text"
+							name="Search"
+							className="w-64 text-lg rounded-full border-2 border-gray-400 focus:outline-none pl-3 py-1 mx-8"
+							placeholder={"Search"}
+						/>
 						{loggedIn ? (
 							<>
 								<motion.div
@@ -100,15 +108,7 @@ const Navbar: React.FunctionComponent<NavbarProps> = ({
 										Account
 									</p>
 									{showMenu && (
-										<motion.div
-											className="absolute z-10 w-60 rounded-lg flex flex-col divide-y-2 divide-gray-600 p-2 top-14 right-8 bg-blue-100 border border-gray-300 shadow-md"
-											onHoverStart={() => {
-												toggleMenu(true);
-											}}
-											onHoverEnd={() => {
-												toggleMenu(false);
-											}}
-										>
+										<motion.div className="absolute z-10 w-60 rounded-lg flex flex-col divide-y-2 divide-gray-600 p-2 top-14 right-8 bg-blue-100 border border-gray-300 shadow-md">
 											<p className="font-semibold px-2 py-3 cursor-pointer">
 												Settings
 											</p>
