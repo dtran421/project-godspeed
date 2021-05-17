@@ -6,9 +6,16 @@ module.exports = {
 		"./pages/**/*.{js,jsx,ts,tsx,vue}",
 		"./components/**/*.{js,jsx,ts,tsx,vue}"
 	],
-	darkMode: false, // or 'media' or 'class'
+	darkMode: "class", // or 'media' or 'class'
 	theme: {
-		extend: {}
+		extend: {
+			minHeight: {
+				23: "23rem"
+			},
+			inset: {
+				18: "4.25rem"
+			}
+		}
 	},
 	variants: {
 		extend: {

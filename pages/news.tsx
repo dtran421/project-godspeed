@@ -1,19 +1,20 @@
-import React from "react";
+import React, { FC } from "react";
 import { GetStaticProps } from "next";
-import cheerio from "cheerio";
 
-import { headersConfig } from "./_app";
-import { months } from "./drops";
-import Navbar from "../components/Global/Navbar";
+import { StoryInfo, PopularStoryInfo } from "./api/StructureTypes";
+import MainLayout from "../components/Global/Layouts/MainLayout";
+import {
+	fetchSneakerNews,
+	fetchSoleCollector,
+	fetchComplexSneakers,
+	fetchSneakerNewsPopular,
+	fetchComplexSneakersPopular,
+	fetchSoleCollectorPopular
+} from "../components/News/FetchFunctions";
+import PopularNews from "../components/News/PopularNews";
+import NewsCard from "../components/News/NewsCard";
 
-interface StoryInfo {
-	headline: string;
-	link: string;
-	postTime: string;
-	imageUrl: string;
-}
-
-interface NewsProps {
+export interface NewsProps {
 	sources: [
 		{
 			name: string;
@@ -24,280 +25,69 @@ interface NewsProps {
 				width?: number;
 			};
 			latestStories: StoryInfo[];
+			popularStories?: PopularStoryInfo[];
 		}
 	];
 }
 
-const MAX_STORIES = 8;
-
-const News: React.FunctionComponent<NewsProps> = ({ sources }: NewsProps) => {
+const News: FC<NewsProps> = ({ sources }: NewsProps) => {
 	return (
-		<div>
-			<div className="flex flex-col w-full min-h-screen bg-gray-100">
-				<Navbar page={"News"} userStatus={null} />
-				<div className="mx-auto max-w-7xl rounded-xl p-4">
-					<div className="flex flex-col">
-						<h1 className="flex items-center text-3xl font-bold p-6 ml-16">
+		<MainLayout page={"News"} userStatus={null}>
+			<div className="mx-auto max-w-7xl rounded-xl p-4">
+				<div className="flex flex-col">
+					<div className="max-w-5xl mx-auto mt-6 mb-20">
+						<h1 className="flex items-center text-6xl font-bold py-4">
 							Latest News
 						</h1>
-						{sources.map((source, index) => {
-							const {
-								link,
-								logo: { logoHtml, logoUrl, width },
-								latestStories
-							} = source;
-							return (
-								<div
-									key={index}
-									className="flex flex-col mb-20"
-								>
-									<div className="flex">
-										<a
-											href={link}
-											target="_blank"
-											rel="noreferrer"
-											className="mb-6"
-										>
-											{logoHtml !== undefined ? (
-												<div
-													dangerouslySetInnerHTML={{
-														__html: logoHtml
-													}}
-												/>
-											) : (
-												<img
-													width={width}
-													src={logoUrl}
-												/>
-											)}
-										</a>
-									</div>
-									<div className="grid grid-cols-4 gap-6 max-w-6xl">
-										{latestStories.map((story, index) => {
-											const {
-												headline,
-												link,
-												postTime,
-												imageUrl
-											} = story;
-											return (
-												<div
-													key={index}
-													className="rounded-lg bg-white overflow-hidden shadow-lg"
-												>
-													<a
-														href={link}
-														target="_blank"
-														rel="noreferrer"
-													>
-														<img
-															width={275}
-															src={imageUrl}
-															className="max-h-40 overflow-hidden"
-														/>
-													</a>
-													<div className="flex flex-col justify-between">
-														<a
-															href={link}
-															target="_blank"
-															rel="noreferrer"
-														>
-															<p className="text-left font-medium mt-4 mx-4">
-																{headline}
-															</p>
-														</a>
-														<p className="text-gray-600 mb-4 mx-4">
-															{postTime}
-														</p>
-													</div>
-												</div>
-											);
-										})}
-									</div>
-								</div>
-							);
-						})}
+						<PopularNews sources={sources} />
 					</div>
+					{sources.map((source, index) => {
+						const {
+							link,
+							logo: { logoHtml, logoUrl, width },
+							latestStories
+						} = source;
+						return (
+							<div key={index} className="flex flex-col mb-20">
+								<div className="flex">
+									<a
+										href={link}
+										target="_blank"
+										rel="noreferrer"
+										className="mb-6 rounded-xl dark:bg-gray-200 dark:p-4"
+									>
+										{logoHtml !== undefined ? (
+											<div
+												dangerouslySetInnerHTML={{
+													__html: logoHtml
+												}}
+											/>
+										) : (
+											<img width={width} src={logoUrl} />
+										)}
+									</a>
+								</div>
+								<div className="grid grid-cols-4 gap-6 max-w-6xl">
+									{latestStories.map((story, index) => {
+										return (
+											<NewsCard key={index} {...story} />
+										);
+									})}
+								</div>
+							</div>
+						);
+					})}
 				</div>
 			</div>
-			<footer className={"footer"}>
-				<div className="w-full flex flex-row justify-between bg-gray-400 p-5 mt-10">
-					<div className="flex flex-col">
-						<h1 className="text-lg font-semibold">Godspeed</h1>
-					</div>
-				</div>
-			</footer>
-		</div>
+		</MainLayout>
 	);
 };
 
-const fetchSneakerNews = () => {
-	return new Promise((resolve, reject) => {
-		fetch("https://sneakernews.com/", headersConfig)
-			.then((response) => response.text())
-			.then((html) => {
-				const $ = cheerio.load(html);
-				resolve(
-					$(".post-ads-container-home")
-						.find(".post-box")
-						.map((index, elem) => {
-							if (index < MAX_STORIES) {
-								const imageBox = $(elem).find(".image-box");
-								const postContent = $(elem).find(
-									".post-content"
-								);
-								return {
-									headline: postContent
-										.find("h4")
-										.find("a")
-										.text()
-										.trim(),
-									link: postContent
-										.find("h4")
-										.find("a")
-										.attr("href"),
-									postTime: `${postContent
-										.find("div > span:nth-child(2)")
-										.text()} ago`,
-									imageUrl: imageBox
-										.find("a")
-										.find("img")
-										.attr("src")
-								};
-							}
-						})
-						.get()
-				);
-			})
-			.catch((err) => reject(err));
-	});
-};
-
-const fetchSoleCollector = () => {
-	return new Promise((resolve, reject) => {
-		fetch(
-			"https://solecollector.com/api/dsl/article?get=42&skip=0&sortBy=published",
-			headersConfig
-		)
-			.then((response) => response.json())
-			.then((results) => {
-				let storyCount = 0;
-				const latestStories = results.reduce(
-					(
-						latestStories,
-						{
-							headline,
-							alias,
-							datePublished,
-							thumbnail: {
-								transformation: {
-									transformations,
-									asset: { cloudinaryId, seoFilename }
-								}
-							}
-						}
-					) => {
-						if (
-							storyCount < MAX_STORIES &&
-							transformations !== null
-						) {
-							const { height, width, x, y } = transformations;
-							const currDate = new Date();
-							const postDate = new Date(datePublished);
-							const time = Math.floor(
-								(currDate.getTime() - postDate.getTime()) / 36e5
-							);
-							const postTime =
-								currDate.getDate() !== postDate.getDate()
-									? `${
-											months[
-												(postDate.getMonth() + 1)
-													.toString()
-													.padStart(2, "0")
-											]
-									  } ${postDate.getDate()}`
-									: `${time} hours ago`;
-							storyCount++;
-							latestStories.push({
-								headline: headline,
-								link: `https://solecollector.com/news/${alias}`,
-								postTime: postTime,
-								imageUrl: `https://images.solecollector.com/complex/images/c_crop,h_${height},w_${width},x_${x},y_${y}/c_fill,dpr_2.0,f_auto,fl_lossy,q_auto,w_800/${cloudinaryId}/${seoFilename}`
-							});
-						}
-						return latestStories;
-					},
-					[]
-				);
-				resolve(latestStories);
-			})
-			.catch((err) => reject(err));
-	});
-};
-
-const fetchComplexSneakers = () => {
-	return new Promise((resolve, reject) => {
-		fetch(
-			"https://www.complex.com/api/channel/6/articles?take=20",
-			headersConfig
-		)
-			.then((response) => response.json())
-			.then((results) => {
-				let storyCount = 0;
-				const latestStories = results.reduce(
-					(
-						latestStories,
-						{
-							headline,
-							alias,
-							datePublished,
-							thumbnail: {
-								transformation: {
-									asset: {
-										cloudinaryId,
-										seoFilename,
-										width,
-										height
-									}
-								}
-							}
-						}
-					) => {
-						if (storyCount < MAX_STORIES) {
-							const currDate = new Date();
-							const postDate = new Date(datePublished);
-							const time = Math.floor(
-								(currDate.getTime() - postDate.getTime()) / 36e5
-							);
-							const postTime =
-								currDate.getDate() !== postDate.getDate()
-									? `${
-											months[
-												(postDate.getMonth() + 1)
-													.toString()
-													.padStart(2, "0")
-											]
-									  } ${postDate.getDate()}`
-									: `${time} hours ago`;
-							storyCount++;
-							latestStories.push({
-								headline: headline,
-								link: `https://www.complex.com/sneakers/${alias}`,
-								postTime: postTime,
-								imageUrl: `https://images.complex.com/complex/images/c_fill,dpr_auto,f_auto,g_face,h_${height},q_auto,w_${width}/fl_lossy,pg_1/${cloudinaryId}/${seoFilename}?fimg-client-default`
-							});
-						}
-						return latestStories;
-					},
-					[]
-				);
-				resolve(latestStories);
-			})
-			.catch((err) => reject(err));
-	});
-};
-
 export const getStaticProps: GetStaticProps = async () => {
+	const SneakerNewsPopularStories = await fetchSneakerNewsPopular();
+	const SoleCollectorPopularStories = await fetchSoleCollectorPopular();
+	// const ComplexSneakersPopularStories = await fetchComplexSneakersPopular();
+
 	const SneakerNewsLatestStories = await fetchSneakerNews();
 	const SoleCollectorLatestStories = await fetchSoleCollector();
 	const ComplexSneakersLatestStories = await fetchComplexSneakers();
@@ -313,7 +103,8 @@ export const getStaticProps: GetStaticProps = async () => {
 							"https://sneakernews.com/wp-content/themes/sneakernews/images/site-logo.png",
 						width: 300
 					},
-					latestStories: SneakerNewsLatestStories
+					latestStories: SneakerNewsLatestStories,
+					popularStories: SneakerNewsPopularStories
 				},
 				{
 					name: "Sole Collector",
@@ -323,7 +114,8 @@ export const getStaticProps: GetStaticProps = async () => {
 							"https://images.solecollector.com/complex/image/upload/v1557174781/SC_Logo_TM_Blue_20190506-01_eeopog.svg",
 						width: 250
 					},
-					latestStories: SoleCollectorLatestStories
+					latestStories: SoleCollectorLatestStories,
+					popularStories: SoleCollectorPopularStories
 				},
 				{
 					name: "Complex Sneakers",

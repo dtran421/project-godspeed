@@ -64,25 +64,26 @@ const WatchlistList: React.FunctionComponent<WatchlistListProps> = ({
 		<div
 			className={`fixed left-0 top-16 h-full z-10 ${
 				showMenu ? "w-1/6" : "w-16"
-			} bg-white shadow-lg border-r-2 border-gray-200 py-2`}
+			} bg-white dark:bg-gray-900 transition-colors duration-100 shadow-lg border-r border-gray-200 dark:border-gray-700 py-2`}
 		>
 			<div className={`${showMenu ? "px-6" : "px-2"} my-4`}>
 				<button
-					className="flex items-center justify-center w-full rounded-md py-1 border-2 border-gray-700 text-lg font-medium focus:outline-none hover:text-purple-500 active:text-purple-700"
+					className="flex items-center justify-center w-full rounded-md py-1 border border-gray-700 text-lg font-medium focus:outline-none"
 					onClick={() => toggleMenu(!showMenu)}
 				>
 					{showMenu ? (
 						<>
-							<FiArrowLeft className="mr-2" /> {"Collapse"}
+							<FiArrowLeft size={24} className="mr-2" />{" "}
+							{"Collapse"}
 						</>
 					) : (
-						<FiArrowRight />
+						<FiArrowRight size={24} />
 					)}
 				</button>
 			</div>
 			{showMenu && (
 				<>
-					<h1 className="text-2xl text-center font-semibold mb-2">
+					<h1 className="text-2xl text-center font-semibold mb-4">
 						Watchlists
 					</h1>
 					{lists.length > 0 ? (
@@ -92,7 +93,7 @@ const WatchlistList: React.FunctionComponent<WatchlistListProps> = ({
 									key={index}
 									className={`border-l-4 ${
 										active === index
-											? "border-purple-600 bg-purple-100"
+											? "border-purple-600 dark:border-purple-800 bg-purple-100 dark:bg-purple-600 dark:bg-opacity-40"
 											: "border-transparent"
 									} cursor-pointer`}
 									onClick={() => {
@@ -116,7 +117,7 @@ const WatchlistList: React.FunctionComponent<WatchlistListProps> = ({
 					<div className="mt-8 text-center">
 						{!showInput && (
 							<button
-								className="rounded-full border-2 border-purple-600 text-purple-600 font-medium text-lg mx-6 px-6 py-1 focus:outline-none hover:bg-purple-600 hover:text-white"
+								className="rounded-full border-2 border-purple-600 text-purple-600 dark:text-white font-medium text-lg px-8 py-2 focus:outline-none hover:bg-purple-600 hover:text-white"
 								onClick={() => toggleInput(!showInput)}
 							>
 								New list
@@ -142,12 +143,12 @@ const WatchlistList: React.FunctionComponent<WatchlistListProps> = ({
 												<Field
 													name="listName"
 													placeholder="List Name"
-													className="bg-blue-50 rounded-lg border-2 border-blue-300 font-medium pl-3 py-2 focus:outline-none focus:border-purple-400"
+													className="bg-blue-50 dark:bg-gray-700 rounded-lg border-2 border-blue-300 font-medium pl-3 py-2 focus:outline-none focus:border-purple-400 dark:focus:border-"
 												/>
 												<div className="w-full grid grid-cols-2 gap-2 my-3">
 													<button
 														type="button"
-														className="text-lg rounded-lg border-2 border-purple-600 text-purple-600 px-1 focus:outline-none"
+														className="text-lg rounded-lg border-2 border-purple-600 text-purple-600 dark:text-white px-1 focus:outline-none"
 														onClick={() => {
 															toggleInput(
 																!showInput

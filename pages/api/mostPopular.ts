@@ -13,8 +13,9 @@ const fetchMostPopular = () => {
 			.then((response) => response.json())
 			.then((results) => {
 				const tickers = results.Products.map(
-					({ tickerSymbol, market }) => {
+					({ urlKey, tickerSymbol, market }) => {
 						return {
+							urlKey,
 							ticker: tickerSymbol,
 							latestChange:
 								Math.round(market.changePercentage * 10000) /

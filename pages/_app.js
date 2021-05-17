@@ -1,4 +1,5 @@
 import "../styles/globals.css";
+import { ThemeProvider } from "next-themes";
 import firebase from "firebase/app";
 
 // If you enabled Analytics in your project, add the Firebase SDK for Analytics
@@ -41,7 +42,11 @@ const db = firebase.firestore(app);
 export { firebase, db };
 
 function MyApp({ Component, pageProps }) {
-	return <Component {...pageProps} />;
+	return (
+		<ThemeProvider attribute="class">
+			<Component {...pageProps} />
+		</ThemeProvider>
+	);
 }
 
 export default MyApp;

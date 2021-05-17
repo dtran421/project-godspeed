@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, {
+	Dispatch,
+	SetStateAction,
+	useState,
+	useEffect,
+	createContext,
+	useContext
+} from "react";
 import { NextRouter, withRouter } from "next/router";
 import Popup from "reactjs-popup";
 import { FiX, FiPlusCircle } from "react-icons/fi";
@@ -7,61 +14,17 @@ import CreatableSelect from "react-select/creatable";
 import makeAnimated from "react-select/animated";
 import MoonLoader from "react-spinners/MoonLoader";
 
+import SelectStyles from "./SelectConfig";
 import { firebase, db } from "../../pages/_app";
-import { ChildInfo } from "../../pages/api/StructureTypes";
-import { ModalContext } from "../../pages/drops";
-
-const colors = {
-	optionLabel: "#000000", // option text
-	optionBgActive: "#C4B5FD", // active option (click)
-	focusedBg: "#DDD6FE", // hover option
-	multiLabel: "#7C3AED", // selected label text
-	multiBg: "#EDE9FE", // selected label bg
-	multiRemove: "#8B5CF6", // X symbole
-	multiRemoveHoverBg: "#6D28D9" // hover X bg
-};
-
-const colourStyles = {
-	control: (styles) => ({ ...styles, backgroundColor: "white" }),
-	option: (styles, { isFocused }) => {
-		return {
-			...styles,
-			backgroundColor: isFocused && colors.focusedBg,
-			color: colors.optionLabel,
-			cursor: "default",
-			":active": {
-				...styles[":active"],
-				backgroundColor: colors.optionBgActive
-			}
-		};
-	},
-	multiValue: (styles) => {
-		return {
-			...styles,
-			backgroundColor: colors.multiBg
-		};
-	},
-	multiValueLabel: (styles) => ({
-		...styles,
-		color: colors.multiLabel
-	}),
-	multiValueRemove: (styles) => ({
-		...styles,
-		color: colors.multiRemove,
-		":hover": {
-			backgroundColor: colors.multiRemoveHoverBg,
-			color: "white"
-		}
-	})
-};
+import { ChildInfo, ShoeChild } from "../../pages/api/StructureTypes";
 
 const saveShoeToList = async (
 	uid: string,
 	urlKey: string,
 	selectedSizes: string[],
-	selectedLists: string[]
+	selectedLists: Record<string, string>[]
 ) => {
-	selectedLists.map((listName) => {
+	selectedLists.map(({ value: listName }) => {
 		const watchlistRef = db
 			.collection("watchlists")
 			.doc(uid)
@@ -71,15 +34,19 @@ const saveShoeToList = async (
 			.get()
 			.then((doc) => {
 				let newSizes;
-				const shoesDict = doc.data().shoes;
-				if (
-					doc.exists &&
-					Object.keys(shoesDict).length !== 0 &&
-					shoesDict[urlKey] !== undefined
-				) {
-					newSizes = Array.from(
-						new Set([...shoesDict[urlKey], ...selectedSizes])
-					);
+				if (doc.exists) {
+					const shoesDict = doc.data().shoes;
+					if (
+						shoesDict &&
+						Object.keys(shoesDict).length &&
+						shoesDict[urlKey]
+					) {
+						newSizes = Array.from(
+							new Set([...shoesDict[urlKey], ...selectedSizes])
+						);
+					} else {
+						newSizes = selectedSizes;
+					}
 				} else {
 					newSizes = selectedSizes;
 				}
@@ -97,6 +64,21 @@ const saveShoeToList = async (
 			});
 	});
 };
+
+interface ModalContextObject {
+	watchlistsContext: [
+		boolean,
+		boolean,
+		{ value: string; label: string }[],
+		Dispatch<
+			SetStateAction<
+				[boolean, boolean, { value: string; label: string }[]]
+			>
+		>
+	];
+}
+
+export const ModalContext = createContext({} as ModalContextObject);
 
 interface ModalProps {
 	router: NextRouter;
@@ -121,13 +103,14 @@ const Modal: React.FunctionComponent<ModalProps> = ({
 	const [open, setOpen] = useState(false);
 	const closeModal = () => setOpen(false);
 
-	const { watchlistsContext } = useContext(ModalContext);
-	const [
-		isFetchingLists,
-		hasFetchedLists,
-		watchlists,
-		updateWatchlists
-	] = watchlistsContext;
+	const {
+		watchlistsContext: [
+			isFetchingLists,
+			hasFetchedLists,
+			watchlists,
+			updateWatchlists
+		]
+	} = useContext(ModalContext);
 	const fetchWatchlists = (userUID) => {
 		db.collection("watchlists")
 			.doc(userUID)
@@ -158,13 +141,15 @@ const Modal: React.FunctionComponent<ModalProps> = ({
 			.then((childrenData: ChildInfo[]) => {
 				updateShoeChildren([
 					false,
-					childrenData.map(({ shoeSize, latestPrice: { last } }) => {
-						return {
-							value: shoeSize,
-							label: shoeSize,
-							rating: last
-						};
-					})
+					childrenData.map(
+						({ uuid, shoeSize: size, latestPrice: { last } }) => {
+							return {
+								value: { uuid, size } as ShoeChild,
+								label: size,
+								lastPrice: last
+							};
+						}
+					)
 				]);
 			});
 	};
@@ -229,11 +214,11 @@ const Modal: React.FunctionComponent<ModalProps> = ({
 
 	let button;
 	switch (type) {
-		case "Highlight":
+		case "highlight":
 			button = (
 				<div className="flex flex-col justify-end mx-4">
 					<button
-						className="text-lg text-purple-600 font-semibold border-2 border-purple-500 rounded-xl px-3 py-1 hover:bg-purple-500 hover:text-white focus:outline-none"
+						className="text-lg text-purple-600 dark:text-purple-400 font-semibold border-2 border-purple-500 rounded-xl px-3 py-1 hover:bg-purple-500 hover:text-white dark:hover:text-white focus:outline-none"
 						onClick={() => checkLoggedIn()}
 					>
 						Track this Shoe
@@ -241,7 +226,7 @@ const Modal: React.FunctionComponent<ModalProps> = ({
 				</div>
 			);
 			break;
-		case "Showcase":
+		case "showcase":
 			button = (
 				<button
 					className="absolute -top-6 -right-4 text-lg text-purple-500 font-semibold p-2 focus:outline-none"
@@ -268,7 +253,7 @@ const Modal: React.FunctionComponent<ModalProps> = ({
 			{button}
 			<Popup open={open} closeOnDocumentClick onClose={closeModal}>
 				<div className="w-screen h-screen flex justify-center items-center bg-opacity-70 bg-gray-700">
-					<div className="flex flex-col w-1/2 bg-white rounded-lg">
+					<div className="flex flex-col w-1/2 bg-white dark:bg-gray-900 rounded-lg">
 						<div className="flex justify-end">
 							<button
 								className="inline-block text-lg font-semibold focus:outline-none px-4 py-2"
@@ -279,12 +264,14 @@ const Modal: React.FunctionComponent<ModalProps> = ({
 						</div>
 						<div className="flex flex-col items-center px-6 pb-6">
 							<h1 className="text-3xl font-medium">{name}</h1>
-							<img
-								width="250"
-								height="250"
-								src={imageUrl}
-								className="rounded-lg m-4"
-							/>
+							<div className="bg-white rounded-xl p-2 m-4">
+								<img
+									width="250"
+									height="250"
+									src={imageUrl}
+									className="rounded-lg"
+								/>
+							</div>
 							<div className="flex w-full grid-cols-2 gap-x-4 border-b-2 border-gray-300 pb-6">
 								<Select
 									closeMenuOnSelect={false}
@@ -295,8 +282,8 @@ const Modal: React.FunctionComponent<ModalProps> = ({
 									noOptionsMessage={() => "No shoes found."}
 									getOptionLabel={(option) =>
 										`${option.label} — ${
-											parseInt(option.rating) > 0
-												? `$${option.rating}`
+											parseInt(option.lastPrice) > 0
+												? `$${option.lastPrice}`
 												: "Not reported"
 										}`
 									}
@@ -305,7 +292,7 @@ const Modal: React.FunctionComponent<ModalProps> = ({
 									}
 									isMulti
 									options={shoeChildren}
-									styles={colourStyles}
+									styles={SelectStyles}
 									className="w-full"
 									onChange={(selectedOptions) => {
 										selectedOptions = selectedOptions.map(
@@ -324,14 +311,11 @@ const Modal: React.FunctionComponent<ModalProps> = ({
 									}
 									isMulti
 									options={watchlists}
-									styles={colourStyles}
+									styles={SelectStyles}
 									className="w-full"
-									onChange={(selectedOptions) => {
-										selectedOptions = selectedOptions.map(
-											(option) => option.value
-										);
-										setLists(selectedOptions);
-									}}
+									onChange={(selectedOptions) =>
+										setLists(selectedOptions)
+									}
 								/>
 							</div>
 							{isSubmitting ? (

@@ -8,14 +8,16 @@ import { ShowcaseInfo } from "../../pages/api/StructureTypes";
 import ListCard from "./ListCard";
 
 interface ShowcaseListProps {
-	name: string;
+	heading: string;
+	subheading: string;
 	emoji: ReactNode;
 	emojiClass: string;
 	list: ShowcaseInfo[];
 }
 
 const ShowcaseList: React.FunctionComponent<ShowcaseListProps> = ({
-	name,
+	heading,
+	subheading,
 	emoji,
 	emojiClass,
 	list
@@ -59,7 +61,9 @@ const ShowcaseList: React.FunctionComponent<ShowcaseListProps> = ({
 				key={index}
 				size={8}
 				className={`${
-					page === index ? "text-purple-500" : "text-gray-400"
+					page === index
+						? "text-purple-500"
+						: "text-gray-400 dark:text-gray-200"
 				} opacity-70 mx-1`}
 			/>
 		);
@@ -75,7 +79,7 @@ const ShowcaseList: React.FunctionComponent<ShowcaseListProps> = ({
 		if (isMounted) {
 			setTimeout(() => {
 				toggleGridVisibility(true);
-			}, 50);
+			}, 1);
 		}
 
 		return () => {
@@ -83,28 +87,35 @@ const ShowcaseList: React.FunctionComponent<ShowcaseListProps> = ({
 		};
 	}, [isGridVisible]);
 
+	const pageButtonClass =
+		"z-10 w-12 h-12 flex items-center justify-center bg-white dark:bg-gray-900 shadow-md rounded-full text-2xl font-bold mr-3 focus:outline-none active:bg-gray-200 transition-colors duration-200 ease-in-out";
 	return (
 		<div className="flex flex-col mx-auto max-w-7xl rounded-xl">
-			<h1 className="flex items-center text-3xl font-bold p-6 ml-16">
-				{`${name} `}
-				<span
-					className={`inline-flex justify-center align-center rounded-full ml-3 p-2 bg-opacity-50 ${emojiClass}`}
-				>
-					{emoji}
-				</span>
-			</h1>
-			<div className="flex flex-row">
+			<div className="p-6 ml-16">
+				<h1 className="flex items-center text-3xl font-bold">
+					{heading}
+					<span
+						className={`inline-flex justify-center align-center rounded-full ml-3 p-2 bg-opacity-50 ${emojiClass}`}
+					>
+						{emoji}
+					</span>
+				</h1>
+				<h2 className="text-xl font-medium text-gray-700 dark:text-gray-300">
+					{subheading}
+				</h2>
+			</div>
+			<div className="flex">
 				<div className="flex items-center">
 					<button
 						className={`${
 							!(page > 0) && "invisible"
-						} w-16 h-16 flex items-center justify-center bg-white border border-gray-200 shadow-md rounded-full text-2xl font-bold mr-3 focus:outline-none active:bg-gray-200 transition-colors duration-200 ease-in-out`}
+						} ${pageButtonClass}`}
 						onClick={() => paginate(-1)}
 					>
-						<FiChevronLeft className="text-purple-600" />
+						<FiChevronLeft className="text-purple-600 dark:text-purple-400" />
 					</button>
 				</div>
-				<div className="flex">
+				<div className="flex min-h-23">
 					<AnimatePresence>
 						<motion.div
 							className="grid grid-cols-4"
@@ -141,10 +152,10 @@ const ShowcaseList: React.FunctionComponent<ShowcaseListProps> = ({
 								page * MAX_CARDS_PER_PAGE + MAX_CARDS_PER_PAGE <
 								list.length
 							) && "invisible"
-						} w-16 h-16 flex items-center justify-center bg-white border border-gray-200 shadow-md rounded-full text-2xl font-bold ml-3 focus:outline-none active:bg-gray-200 transition-colors duration-200 ease-in-out`}
+						} ${pageButtonClass}`}
 						onClick={() => paginate(1)}
 					>
-						<FiChevronRight className="text-purple-600" />
+						<FiChevronRight className="text-purple-600 dark:text-purple-400" />
 					</button>
 				</div>
 			</div>

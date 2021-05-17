@@ -1,17 +1,12 @@
-import React, {
-	useState,
-	useEffect,
-	createContext,
-	SetStateAction,
-	Dispatch
-} from "react";
+import React, { FC, useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { FiArrowUp } from "react-icons/fi";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 
+import { ModalContext } from "../components/Global/Modal";
 import { MAX_SHOES_PER_LINE } from "./api/newReleases";
-import Navbar from "../components/Global/Navbar";
-import HighlightReleaseCard from "../components/Drops/HighlightReleaseCard";
+import MainLayout from "../components/Global/Layouts/MainLayout";
+import HighlightPanel from "../components/Drops/HighlightPanel";
 import ReleaseCard from "../components/Drops/ReleaseCard";
 
 export const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -31,21 +26,6 @@ export const months = {
 	"12": "Dec"
 };
 
-export interface ModalContext {
-	watchlistsContext: [
-		boolean,
-		boolean,
-		{ value: string; label: string }[],
-		Dispatch<
-			SetStateAction<
-				[boolean, boolean, { value: string; label: string }[]]
-			>
-		>
-	];
-}
-
-export const ModalContext = createContext({} as ModalContext);
-
 const prepMonth = (router) => {
 	const monthQuery = router.query.month as string;
 	let checkMonth = new Date().getMonth() + 1;
@@ -60,7 +40,7 @@ const prepMonth = (router) => {
 	return checkMonth.toString().padStart(2, "0");
 };
 
-const Drops: React.FunctionComponent<null> = () => {
+const Drops: FC<null> = () => {
 	const router = useRouter();
 
 	const [[month, index, releaseMonths], updateMonth] = useState([
@@ -113,49 +93,36 @@ const Drops: React.FunctionComponent<null> = () => {
 	};
 
 	const buttonClass =
-		"flex items-center text-gray-800 mx-4 disabled:cursor-not-allowed disabled:text-gray-400 focus:outline-none";
+		"flex items-center text-gray-800 dark:text-gray-200 mx-4 disabled:cursor-not-allowed disabled:text-gray-400 dark:disabled:text-gray-700 focus:outline-none";
 	const arrowProps = {
-		size: 28,
+		size: 20,
 		className: "stroke-1"
 	};
 
 	return (
-		<div className="w-full bg-gray-100 min-h-screen">
-			<Navbar page={"Drops"} userStatus={null} />
+		<MainLayout page={"Drops"} userStatus={null}>
 			{isFetchingNewReleases ? (
 				<div className="flex flex-col h-screen justify-center items-center">
 					<p className="text-2xl font-semibold">Loading...</p>
 				</div>
 			) : (
-				<>
+				<ModalContext.Provider
+					value={{
+						watchlistsContext: [
+							isFetchingLists,
+							hasFetchedLists,
+							watchlists,
+							updateWatchlists
+						]
+					}}
+				>
 					<div className="max-w-5xl mx-auto">
 						<h1 className="text-5xl font-bold mt-10 mb-6">
 							Upcoming Drops
 						</h1>
-						<div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-16">
-							{top3List.map((releaseInfo, index, list) => {
-								return (
-									<ModalContext.Provider
-										key={index}
-										value={{
-											watchlistsContext: [
-												isFetchingLists,
-												hasFetchedLists,
-												watchlists,
-												updateWatchlists
-											]
-										}}
-									>
-										<HighlightReleaseCard
-											releaseInfo={releaseInfo}
-											showBorder={index < list.length - 1}
-										/>
-									</ModalContext.Provider>
-								);
-							})}
-						</div>
+						<HighlightPanel top3List={top3List} />
 					</div>
-					<div className="flex justify-center w-full bg-purple-200 p-2 mb-8">
+					<div className="sticky top-18 z-10 flex justify-center w-full bg-purple-200 dark:bg-purple-600 p-3 mb-8">
 						<div className="flex justify-between max-w-md">
 							<button
 								className={buttonClass}
@@ -166,7 +133,7 @@ const Drops: React.FunctionComponent<null> = () => {
 									onClick={() => paginate(-1)}
 								/>
 							</button>
-							<p className="w-16 text-2xl text-center font-medium uppercase">
+							<p className="w-16 text-xl text-center font-medium uppercase">
 								{months[month.toString().padStart(2, "0")]}
 							</p>
 							<button
@@ -188,36 +155,24 @@ const Drops: React.FunctionComponent<null> = () => {
 									key={index}
 									className="max-w-6xl mx-auto mb-4"
 								>
-									<h1 className="text-4xl font-bold">{`${
+									<h1 className="text-4xl font-bold mt-10 mb-4">{`${
 										months[dateComponents[1]]
 									} ${dateComponents[2].replace(
 										/^0+/,
 										""
 									)}`}</h1>
 									<div
-										className={`grid grid-cols-${MAX_SHOES_PER_LINE} gap-x-6`}
+										className={`grid grid-cols-${MAX_SHOES_PER_LINE} gap-6`}
 									>
 										{newReleases[releaseDate].map(
 											(releaseInfo, index) => {
 												return (
-													<ModalContext.Provider
+													<ReleaseCard
 														key={index}
-														value={{
-															watchlistsContext: [
-																isFetchingLists,
-																hasFetchedLists,
-																watchlists,
-																updateWatchlists
-															]
-														}}
-													>
-														<ReleaseCard
-															key={index}
-															releaseInfo={
-																releaseInfo
-															}
-														/>
-													</ModalContext.Provider>
+														releaseInfo={
+															releaseInfo
+														}
+													/>
 												);
 											}
 										)}
@@ -234,16 +189,9 @@ const Drops: React.FunctionComponent<null> = () => {
 							/>
 						</button>
 					</div>
-				</>
+				</ModalContext.Provider>
 			)}
-			<footer className={"footer"}>
-				<div className="w-full flex flex-row justify-between bg-gray-400 p-5 mt-10">
-					<div className="flex flex-col">
-						<h1 className="text-lg font-semibold">Godspeed</h1>
-					</div>
-				</div>
-			</footer>
-		</div>
+		</MainLayout>
 	);
 };
 

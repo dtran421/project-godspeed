@@ -20,11 +20,11 @@ const fetchShoeData = (urlKey: string) => {
 };
 
 const getShoeData = async (urlKey: string) => {
-	let shoeData = cacheData.get(urlKey);
+	let shoeData = cacheData.get(`${urlKey}.data`);
 	if (!shoeData) {
 		const FIFTEEN_MINUTES = 1000 * 60 * 15;
 		shoeData = await fetchShoeData(urlKey);
-		cacheData.put(urlKey, shoeData, FIFTEEN_MINUTES);
+		cacheData.put(`${urlKey}.data`, shoeData, FIFTEEN_MINUTES);
 	}
 	return { data: shoeData.data };
 };

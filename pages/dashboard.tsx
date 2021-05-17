@@ -3,9 +3,10 @@ import { useState, useEffect } from "react";
 import { NextRouter, withRouter } from "next/router";
 
 import { firebase, db } from "../pages/_app";
+import { ShoeChild } from "../pages/api/StructureTypes";
+import UserLayout from "../components/Global/Layouts/UserLayout";
 import WatchlistList from "../components/Dashboard/WatchlistList";
 import WatchlistDisplay from "../components/Dashboard/WatchlistDisplay";
-import Navbar from "../components/Global/Navbar";
 
 interface DashboardProps {
 	router: NextRouter;
@@ -17,7 +18,11 @@ const Dashboard: React.FunctionComponent<DashboardProps> = ({
 	const [
 		[isFetching, watchlists, watchlistsData],
 		updateWatchlists
-	] = useState([true, [], {}]);
+	] = useState([true, [], {}] as [
+		boolean,
+		string[],
+		Record<string, ShoeChild[] | undefined[]> | undefined[]
+	]);
 	const [activeListIndex, setActiveList] = useState(-1);
 
 	const fetchWatchlists = (userUID) => {
@@ -30,7 +35,8 @@ const Dashboard: React.FunctionComponent<DashboardProps> = ({
 					fetchedWatchlistsData = {};
 				listDocs.forEach((listDoc) => {
 					fetchedWatchlists.push(listDoc.id);
-					fetchedWatchlistsData[listDoc.id] = listDoc.data().shoes;
+					fetchedWatchlistsData[listDoc.id] = listDoc.data()
+						.shoes as ShoeChild[];
 				});
 				updateWatchlists([
 					false,
@@ -76,47 +82,41 @@ const Dashboard: React.FunctionComponent<DashboardProps> = ({
 	}, []);
 
 	return (
-		<div className="w-full">
-			<div className="flex flex-col w-full min-h-screen bg-gray-100">
-				<Navbar page={"Dashboard"} userStatus={true} />
-				<div className="flex-1 flex justify-center items-center">
-					<div className="w-full justify-center py-24">
-						{isFetching ? (
-							<div>
-								<p className="text-center text-2xl font-semibold">
-									Loading...
-								</p>
-							</div>
-						) : (
-							<>
-								<WatchlistList
-									lists={watchlists}
-									active={activeListIndex}
-									setList={setActiveList}
-									updateWatchlistsAfterCreation={
-										updateWatchlistsAfterCreation
+		<UserLayout page={"Dashboard"} userStatus={true}>
+			<div className="flex-1 flex justify-center items-center">
+				<div className="w-full justify-center py-24">
+					{isFetching ? (
+						<div>
+							<p className="text-center text-2xl font-semibold">
+								Loading...
+							</p>
+						</div>
+					) : (
+						<>
+							<WatchlistList
+								lists={watchlists}
+								active={activeListIndex}
+								setList={setActiveList}
+								updateWatchlistsAfterCreation={
+									updateWatchlistsAfterCreation
+								}
+							/>
+							<div className="flex items-start mx-auto max-w-6xl">
+								<WatchlistDisplay
+									shoeChildren={
+										activeListIndex >= 0
+											? watchlistsData[
+													watchlists[activeListIndex]
+											  ]
+											: null
 									}
 								/>
-								<div className="flex items-start mx-auto max-w-7xl">
-									<WatchlistDisplay
-										shoeChildren={
-											activeListIndex >= 0
-												? watchlistsData[
-														watchlists[
-															activeListIndex
-														]
-												  ]
-												: null
-										}
-									/>
-								</div>
-							</>
-						)}
-					</div>
+							</div>
+						</>
+					)}
 				</div>
 			</div>
-			<footer className="footer"></footer>
-		</div>
+		</UserLayout>
 	);
 };
 

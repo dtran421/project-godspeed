@@ -3,10 +3,11 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { headersConfig } from "../../_app";
 import { CardInfo } from "../StructureTypes";
 
-const fetchShoes = (uuid: string) => {
+/* shoeId can be urlKey or uuid */
+const fetchShoe = (shoeId: string) => {
 	return new Promise((resolve, reject) => {
 		fetch(
-			`https://stockx.com/api/products/${uuid}?includes=market&currency=USD`,
+			`https://stockx.com/api/products/${shoeId}?includes=market&currency=USD`,
 			headersConfig
 		)
 			.then((response) => response.json())
@@ -18,7 +19,6 @@ const fetchShoes = (uuid: string) => {
 						uuid,
 						tickerSymbol,
 						media: { imageUrl },
-						colorway,
 						releaseDate,
 						retailPrice,
 						market: {
@@ -41,7 +41,6 @@ const fetchShoes = (uuid: string) => {
 						uuid,
 						ticker: tickerSymbol,
 						imageUrl,
-						colorway,
 						releaseDate,
 						retailPrice,
 						latestPrice: {
@@ -71,7 +70,7 @@ const handler = async (
 	req: NextApiRequest,
 	res: NextApiResponse
 ): Promise<void> => {
-	const data = await fetchShoes(req.query.uuid as string);
+	const data = await fetchShoe(req.query.shoeId as string);
 	res.json(data);
 };
 

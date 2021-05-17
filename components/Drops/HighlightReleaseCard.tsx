@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import moment from "moment";
 import { BsCaretUpFill, BsCaretDownFill } from "react-icons/bs";
 
@@ -30,7 +31,7 @@ const HighlightReleaseCard: React.FunctionComponent<HighlightReleaseCardProps> =
 				<h1 className="text-5xl font-bold uppercase">
 					{days[moment(releaseDate).day()]}
 				</h1>
-				<h1 className="flex items-center text-xl font-medium text-gray-700">
+				<h1 className="flex items-center text-xl font-medium text-gray-700 dark:text-gray-300">
 					{`${months[dateComponents[1]]} ${dateComponents[2].replace(
 						/^0+/,
 						""
@@ -38,28 +39,32 @@ const HighlightReleaseCard: React.FunctionComponent<HighlightReleaseCardProps> =
 				</h1>
 			</div>
 			<div className="col-span-3 flex m-4">
-				<img
-					width="300"
-					src={imageUrl}
-					className="flex items-center justify-center mr-4 p-4 w-52"
-				/>
+				<div className="flex items-center bg-white rounded-xl mr-4 px-3">
+					<img
+						width="300"
+						src={imageUrl}
+						className="w-52 flex items-center justify-center"
+					/>
+				</div>
 				<div className="flex flex-col w-full py-2">
-					<div className="flex flex-col">
-						<span className="inline-block text-2xl font-medium">
-							{name}
-						</span>
-						<div className="flex items-center">
-							<p className="text-lg font-semibold text-gray-500">
-								[{ticker}]&nbsp;
-							</p>
-							<p className="text-lg font-semibold">
-								&mdash;{" "}
-								{prices.retail !== 0
-									? `$${prices.retail}`
-									: "Not reported"}
-							</p>
+					<Link href={`/shoe/${urlKey}`}>
+						<div className="flex flex-col cursor-pointer">
+							<span className="inline-block text-2xl font-medium">
+								{name}
+							</span>
+							<div className="flex items-center">
+								<p className="text-lg font-semibold text-gray-500 dark:text-gray-300">
+									[{ticker}]&nbsp;
+								</p>
+								<p className="text-lg font-semibold">
+									&mdash;{" "}
+									{prices.retail !== 0
+										? `$${prices.retail}`
+										: "Not reported"}
+								</p>
+							</div>
 						</div>
-					</div>
+					</Link>
 					<div className="flex mt-2">
 						<div className="grid grid-cols-2 gap-x-4 w-1/2">
 							<div className="flex items-center justify-center">
@@ -103,7 +108,7 @@ const HighlightReleaseCard: React.FunctionComponent<HighlightReleaseCardProps> =
 							uuid={uuid}
 							urlKey={urlKey}
 							imageUrl={imageUrl}
-							type={"Highlight"}
+							type={"highlight"}
 						/>
 					</div>
 				</div>

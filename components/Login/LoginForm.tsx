@@ -1,4 +1,5 @@
 import React, { Dispatch, SetStateAction, useState } from "react";
+import { useTheme } from "next-themes";
 import { Formik, Form, Field } from "formik";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
@@ -12,7 +13,8 @@ const intialValues = {
 };
 
 const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
-	const [mode, setMode] = useState("Login");
+	const { theme } = useTheme();
+	const [mode, setMode] = useState("login");
 	const [loginError, updateError] = useState({});
 	const [showPassword, togglePassword] = useState(false);
 
@@ -54,14 +56,15 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 			});
 	};
 
-	const inputClass =
-		"bg-blue-50 w-full p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400";
+	const inputClass = `${
+		theme === "dark" ? "bg-gray-700" : "bg-blue-50"
+	} w-full p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-40`;
 	return (
 		<Formik
 			initialValues={intialValues}
-			validationSchema={mode === "Login" ? LoginSchema : RegisterSchema}
+			validationSchema={mode === "login" ? LoginSchema : RegisterSchema}
 			onSubmit={(values, { setSubmitting }) => {
-				mode === "Login"
+				mode === "login"
 					? loginCredentials(values, { setSubmitting })
 					: registerCredentials(values, {
 							setSubmitting
@@ -71,14 +74,14 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 			{({ values, errors, touched, resetForm, isSubmitting }) => {
 				return (
 					<Form className="flex flex-col justify-center items-center px-3 w-full">
-						{mode === "Register" && (
+						{mode === "register" && (
 							<div className="w-full p-4">
 								<span
 									className="text-blue-500 cursor-pointer"
 									onClick={() => {
 										updateError({});
 										resetForm();
-										setMode("Login");
+										setMode("login");
 									}}
 								>
 									{"<-- Back to Login"}
@@ -87,7 +90,7 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 						)}
 						<h1
 							className={`text-2xl text-center font-bold px-8 ${
-								mode === "Login" ? "pt-8" : ""
+								mode === "login" ? "pt-8" : ""
 							} pb-4`}
 						>
 							{mode}
@@ -95,7 +98,7 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 						<div className="flex flex-col w-full justify-center px-6 pb-4 mx-10">
 							<Error
 								errors={
-									"message" in loginError || mode === "Login"
+									"message" in loginError || mode === "login"
 										? loginError
 										: errors
 								}
@@ -121,7 +124,7 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 								/>
 							</div>
 
-							{mode === "Register" && (
+							{mode === "register" && (
 								<>
 									<InputHeader
 										headerText={"Confirm Password"}
@@ -149,7 +152,7 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 								className="block text-white text-center text-xl bg-purple-500 rounded-lg mt-8 mb-4 p-2 focus:outline-none active:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
 								disabled={
 									!(
-										mode === "Login" ||
+										mode === "login" ||
 										(errors.email === undefined &&
 											errors.password === undefined &&
 											values.email &&
@@ -161,14 +164,14 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 							</button>
 						</div>
 
-						{mode === "Login" && (
+						{mode === "login" && (
 							<div className="w-4/5 flex justify-center border-t border-black p-4">
 								<span
 									className="text-blue-500 cursor-pointer"
 									onClick={() => {
 										updateError({});
 										resetForm();
-										setMode("Register");
+										setMode("register");
 									}}
 								>
 									No account? Sign up

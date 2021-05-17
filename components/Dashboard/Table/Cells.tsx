@@ -12,8 +12,8 @@ interface ImageCellProps {
 }
 
 export const imageCell: FC<ImageCellProps> = ({ imageUrl }: ImageCellProps) => {
-	return (
-		<div className="flex items-center justify-center bg-white ml-4 mr-2 mt-1 rounded-2xl">
+	return imageUrl === "" ? null : (
+		<div className="flex items-center justify-center bg-white mx-6 mt-1 rounded-2xl">
 			<img width="80" src={imageUrl} className="py-2" />
 		</div>
 	);
@@ -35,7 +35,7 @@ export const productCell: FC<ProductCellProps> = ({
 	return mode === "Minimal" ? (
 		<>
 			{size ? (
-				<div className="flex justify-center w-48 py-2">
+				<div className="w-48 py-2">
 					<p className="text-xl font-semibold">Size {size}</p>
 				</div>
 			) : (
@@ -48,8 +48,10 @@ export const productCell: FC<ProductCellProps> = ({
 	) : (
 		<>
 			{size ? (
-				<div className="flex justify-center w-48 py-2">
-					<p className="text-lg font-semibold">Size {size}</p>
+				<div className="flex justify-center py-2">
+					<p className="text-center text-lg font-semibold">
+						Size {size}
+					</p>
 				</div>
 			) : (
 				<div className="flex justify-center py-2 px-4">
@@ -62,12 +64,28 @@ export const productCell: FC<ProductCellProps> = ({
 
 interface StatCellProps {
 	stat: string;
+	format: string;
 }
 
-export const statCell: FC<StatCellProps> = ({ stat }: StatCellProps) => {
+export const statCell: FC<StatCellProps> = ({
+	stat,
+	format
+}: StatCellProps) => {
+	let display;
+	switch (format) {
+		case "dollar":
+			display = `$${stat}`;
+			break;
+		case "percent":
+			display = `${stat}%`;
+			break;
+		default:
+			display = stat;
+			break;
+	}
 	return (
 		<p className={`text-lg text-center font-semibold align-top py-1`}>
-			{stat}
+			{display}
 		</p>
 	);
 };
@@ -83,7 +101,7 @@ export const specialPriceCell: FC<SpecialPriceCellProps> = ({
 }: SpecialPriceCellProps) => {
 	return (
 		<p
-			className={`text-lg text-center font-semibold align-top py-1 ${
+			className={`text-lg text-center font-semibold align-top py-1 mx-3 ${
 				latestChange >= 0 ? "text-green-500" : "text-red-500"
 			}`}
 		>
@@ -117,14 +135,19 @@ export const specialGainCell: FC<SpecialGainCellProps> = ({
 
 interface ActionCellProps {
 	child?: boolean;
-	urlKey: string;
+	shoeId: string;
 	name: string;
+	updateGraphShoe: Dispatch<SetStateAction<string[]>>;
+	deleteShoe: (shoeId: string) => void;
 }
 
-export const actionCell: FC<ActionCellProps> = (
-	{ child, urlKey, name }: ActionCellProps,
-	updateGraphShoe: Dispatch<SetStateAction<string[]>>
-) => {
+export const actionCell: FC<ActionCellProps> = ({
+	child,
+	shoeId,
+	name,
+	updateGraphShoe,
+	deleteShoe
+}: ActionCellProps) => {
 	const [isDropdownVisible, toggleDropdown] = useState(false);
 
 	const menuItemClass =
@@ -135,18 +158,21 @@ export const actionCell: FC<ActionCellProps> = (
 				{child ? (
 					<>
 						<button
-							className="flex items-end rounded-lg p-1 text-red-500 bg-gray-100 hover:bg-gray-200 focus:outline-none active:bg-gray-300 active:text-red-600"
+							className="flex items-end rounded-lg p-1 text-red-600 dark:text-red-400 dark:hover:bg-gray-600 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 focus:outline-none"
 							onClick={() => toggleDropdown(!isDropdownVisible)}
 						>
 							<FiX size={20} className="opacity-80" />
 						</button>
 						{isDropdownVisible && (
-							<div className="absolute right-12 z-10 w-32 rounded-lg bg-white shadow-lg">
+							<div className="absolute right-12 z-10 w-32 rounded-lg bg-white dark:bg-gray-900 shadow-lg">
 								<div className="w-full flex flex-col items-center p-3">
 									<p className="text-center text-red-400 font-medium pb-2">
 										Are you sure?
 									</p>
-									<button className="w-full bg-red-600 text-white font-medium rounded-md py-1 focus:outline-none active:bg-red-700">
+									<button
+										className="w-full bg-red-600 text-white font-medium rounded-md py-1 focus:outline-none active:bg-red-700"
+										onClick={() => deleteShoe(shoeId)}
+									>
 										Delete
 									</button>
 								</div>
@@ -168,12 +194,15 @@ export const actionCell: FC<ActionCellProps> = (
 										className={menuItemClass}
 										onClick={() => {
 											toggleDropdown(!isDropdownVisible);
-											updateGraphShoe([urlKey, name]);
+											updateGraphShoe([shoeId, name]);
 										}}
 									>
 										Graph
 									</button>
-									<button className={menuItemClass}>
+									<button
+										className={menuItemClass}
+										onClick={() => deleteShoe(shoeId)}
+									>
 										Remove
 									</button>
 								</div>
@@ -194,7 +223,7 @@ export const expanderHeader = ({
 	return (
 		<div
 			{...getToggleAllRowsExpandedProps()}
-			className="flex justify-center items-center"
+			className="flex justify-center items-center mr-6"
 		>
 			{isAllRowsExpanded ? (
 				<FiChevronUp size={24} />
@@ -210,7 +239,7 @@ export const expanderCell = ({ row }) => {
 	return row.canExpand ? (
 		<div
 			{...row.getToggleRowExpandedProps()}
-			className="flex justify-center items-center"
+			className="flex justify-center items-center mr-6"
 		>
 			{row.isExpanded ? (
 				<FiChevronUp size={24} />

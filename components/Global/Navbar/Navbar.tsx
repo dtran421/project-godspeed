@@ -4,9 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import Head from "next/head";
 import { NextRouter, withRouter } from "next/router";
-import { motion } from "framer-motion";
 
-import { firebase } from "../../pages/_app";
+import { firebase } from "../../../pages/_app";
+import Dropdown from "./Dropdown";
 import Navlink from "./Navlink";
 
 interface NavbarProps {
@@ -23,7 +23,6 @@ const Navbar: React.FunctionComponent<NavbarProps> = ({
 	userStatus
 }: NavbarProps) => {
 	const [loggedIn, setLoggedIn] = useState(userStatus);
-	const [showMenu, toggleMenu] = useState(false);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -46,26 +45,18 @@ const Navbar: React.FunctionComponent<NavbarProps> = ({
 		};
 	}, []);
 
-	const logout = () => {
-		firebase
-			.auth()
-			.signOut()
-			.then(() => {
-				console.log("User signed out");
-				router.push("/login");
-			})
-			.catch((error) => {
-				console.log("Something went wrong: ", error);
-			});
+	const [searchValue, updateSearchValue] = useState("");
+	const search = () => {
+		router.push(`/search?query=${searchValue}`);
 	};
 
 	return (
-		<div className="sticky top-0 h-16 bg-white z-20">
+		<div className="sticky top-0 h-16 z-20">
 			<Head>
 				<title>{page} | Godspeed</title>
 				<link rel="icon" href="/favicon.ico" />
 			</Head>
-			<div className="relative w-full bg-white border-gray-200 border-b-2">
+			<div className="relative w-full bg-white dark:bg-gray-900 transition-colors duration-150 ease-in-out border-gray-50 dark:border-gray-700 border-b">
 				<div className="grid grid-cols-2 px-10 py-3">
 					<div className="flex">
 						<Link href="/">
@@ -90,38 +81,20 @@ const Navbar: React.FunctionComponent<NavbarProps> = ({
 						<input
 							type="text"
 							name="Search"
-							className="w-64 text-lg rounded-full border-2 border-gray-400 focus:outline-none pl-3 py-1 mx-8"
+							className="w-64 text-lg rounded-full bg-white dark:bg-gray-900 border-2 border-gray-400 dark:border-gray-600 focus:outline-none pl-4 py-1 mx-8"
 							placeholder={"Search"}
+							value={searchValue}
+							onChange={(ev) =>
+								updateSearchValue(ev.target.value)
+							}
+							onKeyPress={(ev) => {
+								if (ev.key === "Enter") {
+									search();
+								}
+							}}
 						/>
 						{loggedIn ? (
-							<>
-								<motion.div
-									className="flex flex-col justify-center h-full"
-									onHoverStart={() => {
-										toggleMenu(true);
-									}}
-									onHoverEnd={() => {
-										toggleMenu(false);
-									}}
-								>
-									<p className="text-xl font-medium cursor-pointer">
-										Account
-									</p>
-									{showMenu && (
-										<motion.div className="absolute z-10 w-60 rounded-lg flex flex-col divide-y-2 divide-gray-600 p-2 top-14 right-8 bg-blue-100 border border-gray-300 shadow-md">
-											<p className="font-semibold px-2 py-3 cursor-pointer">
-												Settings
-											</p>
-											<p
-												className="font-semibold px-2 py-3 cursor-pointer"
-												onClick={() => logout()}
-											>
-												Logout
-											</p>
-										</motion.div>
-									)}
-								</motion.div>
-							</>
+							<Dropdown />
 						) : (
 							<Link href="/login">
 								<p className="text-xl font-medium cursor-pointer">

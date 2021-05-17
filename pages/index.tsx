@@ -1,14 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { FC, useState, useEffect } from "react";
+import { GetStaticProps } from "next";
 import PageVisibility from "react-page-visibility";
 import Twemoji from "react-twemoji";
+import { useTheme } from "next-themes";
+import { TwitterTimelineEmbed } from "react-twitter-embed";
 
-import { ModalContext } from "./drops";
-import Navbar from "../components/Global/Navbar";
+import {
+	fetchSneakerNewsPopular,
+	fetchSoleCollectorPopular
+} from "../components/News/FetchFunctions";
+import { PopularStoryInfo } from "./api/StructureTypes";
+import { ModalContext } from "../components/Global/Modal";
+import MainLayout from "../components/Global/Layouts/MainLayout";
 import TickerBanner from "../components/Index/TickerBanner";
-import HighlightReleaseCard from "../components/Drops/HighlightReleaseCard";
+import PopularNews from "../components/News/PopularNews";
+import HighlightPanel from "../components/Drops/HighlightPanel";
 import ShowcaseList from "../components/Index/ShowcaseList";
+interface IndexProps {
+	sources: [
+		{
+			name: string;
+			link: string;
+			popularStories?: PopularStoryInfo[];
+		}
+	];
+}
 
-const Index: React.FunctionComponent<null> = () => {
+const Index: FC<IndexProps> = ({ sources }: IndexProps) => {
+	const { theme } = useTheme();
 	const [[isFetchingTickers, tickers], updateTickers] = useState([true, []]);
 	const [pageIsVisible, setPageVisibility] = useState(true);
 	const handleVisibilityChange = (isVisible) => {
@@ -90,147 +109,147 @@ const Index: React.FunctionComponent<null> = () => {
 		};
 	}, []);
 
-	useEffect(() => {
-		/* const script = document.createElement("script");
+	/* useEffect(() => {
+		const script = document.createElement("script");
 		script.src = "https://platform.twitter.com/widgets.js";
 		script.async = true;
-		document.body.appendChild(script); */
-	});
+		document.body.appendChild(script);
+	}); */
 
 	return (
-		<div className="w-full bg-gray-100 min-h-screen">
-			<Navbar page={"Home"} userStatus={null} />
+		<MainLayout page={"Home"} userStatus={null}>
 			{isFetchingTickers || isFetchingTrending || isFetchingGainers ? (
 				<div className="flex flex-col h-screen justify-center items-center">
 					<p className="text-2xl font-semibold">Loading...</p>
 				</div>
 			) : (
-				<>
+				<ModalContext.Provider
+					value={{
+						watchlistsContext: [
+							isFetchingLists,
+							hasFetchedLists,
+							watchlists,
+							updateWatchlists
+						]
+					}}
+				>
 					<div className="w-full flex flex-col align-center">
-						<div className="bg-gray-900">
+						<div className="pt-2 bg-gray-900">
 							<PageVisibility onChange={handleVisibilityChange}>
 								{pageIsVisible && (
 									<TickerBanner tickers={tickers} />
 								)}
 							</PageVisibility>
 						</div>
-						<div className="flex flex-row justify-between mt-10 p-10">
-							<div className="flex w-full justify-center">
-								<div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-16">
-									{top3List.map(
-										(releaseInfo, index, list) => {
-											return (
-												<ModalContext.Provider
-													key={index}
-													value={{
-														watchlistsContext: [
-															isFetchingLists,
-															hasFetchedLists,
-															watchlists,
-															updateWatchlists
-														]
-													}}
-												>
-													<HighlightReleaseCard
-														releaseInfo={
-															releaseInfo
-														}
-														showBorder={
-															index <
-															list.length - 1
-														}
-													/>
-												</ModalContext.Provider>
-											);
-										}
-									)}
-								</div>
+						<div className="max-w-5xl flex items-center mt-10 mx-auto">
+							<PopularNews sources={sources} />
+						</div>
+						<div className="flex justify-between my-10 max-w-7xl mx-auto">
+							<div className="w-full max-w-4xl mr-10">
+								<HighlightPanel top3List={top3List} />
 							</div>
-							<div className="h-2/3 rounded-xl shadow-lg p-4 bg-white">
+							<div className="h-2/3 rounded-xl overflow-hidden shadow-lg bg-white dark:bg-gray-900">
 								{/* <a
 									className="twitter-timeline h-screen overflow-auto"
 									href="https://twitter.com/shopkickflip/lists/shoe-news-72100?ref_src=twsrc%5Etfw"
 									data-width="450"
 									data-height="800"
-									data-chrome="nofooter"
+									data-chrome="noheader nofooter noborders"
+									data-theme={theme}
+								/> */}
+								<TwitterTimelineEmbed
+									sourceType="url"
+									url="https://twitter.com/shopkickflip/lists/shoe-news-72100?ref_src=twsrc%5Etfw"
+									options={{
+										width: "400",
+										height: "700"
+									}}
+									theme={theme}
+									noHeader={true}
+									noBorders={true}
+									noFooter={true}
+								/>
+							</div>
+						</div>
+						<ShowcaseList
+							heading={"Trending"}
+							subheading={"Hot shoes right now"}
+							emoji={
+								<Twemoji
+									options={{
+										className: "emoji w-7",
+										folder: "svg",
+										ext: ".svg"
+									}}
 								>
-									A Twitter List by @shopkickflip
-								</a> */}
-							</div>
-						</div>
-						<ModalContext.Provider
-							value={{
-								watchlistsContext: [
-									isFetchingLists,
-									hasFetchedLists,
-									watchlists,
-									updateWatchlists
-								]
-							}}
-						>
-							<ShowcaseList
-								name={"Trending"}
-								emoji={
-									<Twemoji
-										options={{
-											className: "emoji w-7",
-											folder: "svg",
-											ext: ".svg"
-										}}
-									>
-										<span>🔥</span>
-									</Twemoji>
-								}
-								emojiClass={"bg-yellow-200"}
-								list={trendingList}
-							/>
-							<ShowcaseList
-								name={"Popular"}
-								emoji={
-									<Twemoji
-										options={{
-											className: "emoji w-7",
-											folder: "svg",
-											ext: ".svg"
-										}}
-									>
-										<span>💸</span>
-									</Twemoji>
-								}
-								emojiClass={"bg-green-200"}
-								list={popularList}
-							/>
-							<ShowcaseList
-								name={"Gainers"}
-								emoji={
-									<Twemoji
-										options={{
-											className: "emoji w-6",
-											folder: "svg",
-											ext: ".svg"
-										}}
-									>
-										<span>🚀</span>
-									</Twemoji>
-								}
-								emojiClass={"bg-blue-200"}
-								list={gainersList}
-							/>
-						</ModalContext.Provider>
+									<span>🔥</span>
+								</Twemoji>
+							}
+							emojiClass={"bg-yellow-200"}
+							list={trendingList}
+						/>
+						<ShowcaseList
+							heading={"Popular"}
+							subheading={"Most sales over the past 72 hours"}
+							emoji={
+								<Twemoji
+									options={{
+										className: "emoji w-7",
+										folder: "svg",
+										ext: ".svg"
+									}}
+								>
+									<span>💸</span>
+								</Twemoji>
+							}
+							emojiClass={"bg-green-200"}
+							list={popularList}
+						/>
+						<ShowcaseList
+							heading={"Gainers"}
+							subheading={"Biggest gains from their retail price"}
+							emoji={
+								<Twemoji
+									options={{
+										className: "emoji w-6",
+										folder: "svg",
+										ext: ".svg"
+									}}
+								>
+									<span>🚀</span>
+								</Twemoji>
+							}
+							emojiClass={"bg-blue-200"}
+							list={gainersList}
+						/>
 					</div>
-					<footer className={"footer"}>
-						<div className="w-full flex flex-row justify-between bg-gray-400 p-5 mt-10">
-							<div className="flex flex-col">
-								<h1 className="text-lg font-semibold">
-									Godspeed
-								</h1>
-							</div>
-						</div>
-					</footer>
-				</>
+				</ModalContext.Provider>
 			)}
-		</div>
+		</MainLayout>
 	);
+};
+
+export const getStaticProps: GetStaticProps = async () => {
+	const SneakerNewsPopularStories = await fetchSneakerNewsPopular();
+	const SoleCollectorPopularStories = await fetchSoleCollectorPopular();
+	// const ComplexSneakersPopularStories = await fetchComplexSneakersPopular();
+
+	return {
+		props: {
+			sources: [
+				{
+					name: "Sneaker News",
+					link: "https://sneakernews.com/",
+					popularStories: SneakerNewsPopularStories
+				},
+				{
+					name: "Sole Collector",
+					link: "https://solecollector.com/",
+					popularStories: SoleCollectorPopularStories
+				}
+			]
+		}
+	};
 };
 
 export default Index;

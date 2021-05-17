@@ -9,22 +9,31 @@ interface ReleaseCardProps {
 }
 
 const ReleaseCard: React.FunctionComponent<ReleaseCardProps> = ({
-	releaseInfo: { urlKey, uuid, name, ticker, imageUrl, prices }
+	releaseInfo: {
+		urlKey,
+		uuid,
+		name,
+		ticker,
+		imageUrl,
+		prices: { retail, bid, ask }
+	}
 }: ReleaseCardProps) => {
 	return (
-		<div className="flex flex-col justify-between w-full bg-white border border-gray-300 shadow-lg rounded-xl my-6 p-6">
+		<div className="flex flex-col justify-between w-full bg-white dark:bg-gray-900 shadow-lg rounded-xl p-6">
 			<div className="relative flex justify-center p-4">
 				<p className="absolute -top-5 -left-5 p-2 text-lg font-semibold">
-					{prices.retail !== 0 ? `$${prices.retail}` : "Not reported"}
+					{retail !== 0 ? `$${retail}` : "Not reported"}
 				</p>
 				<Modal
 					name={name}
 					uuid={uuid}
 					urlKey={urlKey}
 					imageUrl={imageUrl}
-					type={"Normal"}
+					type={"normal"}
 				/>
-				<img width="175" src={imageUrl} />
+				<div className="flex justify-center bg-white rounded-lg px-2 py-1 mt-4 mb-2">
+					<img width="175" src={imageUrl} />
+				</div>
 			</div>
 			<div className="flex justify-between items-center mb-3">
 				<div>
@@ -32,7 +41,7 @@ const ReleaseCard: React.FunctionComponent<ReleaseCardProps> = ({
 						{name}
 					</span>
 					<div className="flex flex-row justify-between items-center">
-						<p className="font-semibold text-gray-500">
+						<p className="font-semibold text-gray-500 dark:text-gray-300">
 							[{ticker}]
 						</p>
 					</div>
@@ -65,7 +74,7 @@ const ReleaseCard: React.FunctionComponent<ReleaseCardProps> = ({
 							rel="noreferrer"
 							className="w-full text-lg text-center font-semibold text-red-500 px-4 py-1 rounded-full hover:text-white hover:bg-red-500 border-2 border-red-500 hover:cursor-pointer"
 						>
-							${prices.ask}
+							${ask}
 						</a>
 						<a
 							href={`https://stockx.com/buy/${uuid}/${urlKey}`}
@@ -73,7 +82,7 @@ const ReleaseCard: React.FunctionComponent<ReleaseCardProps> = ({
 							rel="noreferrer"
 							className="w-full text-lg text-center font-semibold text-green-500 px-4 py-1 rounded-full hover:text-white hover:bg-green-500 border-2 border-green-500 hover:cursor-pointer"
 						>
-							${prices.bid}
+							${bid}
 						</a>
 					</div>
 				</div>
