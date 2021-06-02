@@ -58,12 +58,9 @@ const StoryCard: FC<StoryCardProps> = ({
 				href={link}
 				target="_blank"
 				rel="noreferrer"
-				className="bg-white relative flex items-center rounded-xl overflow-hidden"
+				className="relative flex items-center rounded-xl overflow-hidden"
 			>
-				<img
-					src={imageUrl}
-					className="w-full border border-gray-300 dark:border-gray-700 border-opacity-40 shadow-md"
-				/>
+				<img src={imageUrl} className="w-full shadow-md" />
 				<div
 					className={`absolute top-0 left-0 w-full h-full flex items-end bg-gradient-to-t ${
 						index === 0

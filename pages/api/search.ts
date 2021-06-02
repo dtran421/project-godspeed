@@ -19,7 +19,7 @@ export const MAX_SHOES_PER_LINE = 4;
 const searchRequest = async (query: string, page: string) => {
 	return new Promise((resolve, reject) => {
 		fetch(
-			`https://stockx.com/api/browse?&_search=${query}&dataType=product${
+			`https://stockx.com/api/browse?productCategory=sneakers&_search=${query}&dataType=product${
 				page !== "" && `&page=${page}`
 			}`,
 			headersConfig

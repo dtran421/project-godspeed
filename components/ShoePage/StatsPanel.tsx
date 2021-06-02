@@ -98,14 +98,24 @@ const StatsPanel: FC<StatsPanelProps> = ({
 				</a>
 			</div>
 			<div className="w-full grid grid-cols-2 gap-x-6 my-6 text-xl">
-				<TopRowCell label={"Colorway"} value={colorway} />
-				<TopRowCell label={"Condition"} value={condition} />
-				<MiddleRowCell label={"Release Date"} value={releaseDate} />
-				<MiddleRowCell
+				<RowCell position={"top"} label={"Colorway"} value={colorway} />
+				<RowCell
+					position={"top"}
+					label={"Condition"}
+					value={condition}
+				/>
+				<RowCell
+					position={"middle"}
+					label={"Release Date"}
+					value={releaseDate}
+				/>
+				<RowCell
+					position={"middle"}
 					label={"Retail Price"}
 					value={`$${retailPrice}`}
 				/>
-				<MiddleRowCell
+				<RowCell
+					position={"middle"}
 					label={"Total Gain"}
 					value={`$${gain} (${
 						Math.round((gain / retailPrice) * 10000) / 100
@@ -114,52 +124,69 @@ const StatsPanel: FC<StatsPanelProps> = ({
 						gain >= 0 ? "text-green-500" : "text-red-500"
 					}`}
 				/>
-				<MiddleRowCell label={"Total Sales"} value={sales} />
-				<MiddleRowCell label={"Average Price"} value={`$${avgPrice}`} />
-				<MiddleRowCell
+				<RowCell
+					position={"middle"}
+					label={"Total Sales"}
+					value={sales}
+				/>
+				<RowCell
+					position={"middle"}
+					label={"Average Price"}
+					value={`$${avgPrice}`}
+				/>
+				<RowCell
+					position={"middle"}
 					label={"Volatility"}
 					value={`${Math.round(volatility * 10000) / 100}%`}
 				/>
-				<BottomRowCell label={"Annual Low"} value={`$${low}`} />
-				<BottomRowCell label={"Annual High"} value={`$${high}`} />
+				<RowCell
+					position={"bottom"}
+					label={"Annual Low"}
+					value={`$${low}`}
+				/>
+				<RowCell
+					position={"bottom"}
+					label={"Annual High"}
+					value={`$${high}`}
+				/>
 			</div>
 		</div>
 	);
 };
 
 interface CellProps {
+	position: string;
 	label: string;
 	value: string | number;
 	valueClass?: string;
 }
 
-const TopRowCell: FC<CellProps> = ({ label, value }: CellProps) => {
-	return (
-		<div className="flex justify-between border-b-2 border-gray-700 dark:border-gray-600 border-opacity-40 pb-2">
-			<p className="font-medium text-gray-300">{label}</p>
-			<p className="text-right">{value}</p>
-		</div>
-	);
-};
-
-const MiddleRowCell: FC<CellProps> = ({
+const RowCell: FC<CellProps> = ({
+	position,
 	label,
 	value,
 	valueClass
 }: CellProps) => {
+	let divClass;
+	switch (position) {
+		case "top":
+			divClass =
+				"border-b-2 border-gray-700 dark:border-gray-600 border-opacity-40 pb-2";
+			break;
+		case "middle":
+			divClass =
+				"border-b-2 border-gray-700 dark:border-gray-600 border-opacity-40 mt-2 pb-2";
+			break;
+		default:
+			divClass = "mt-2";
+			break;
+	}
 	return (
-		<div className="flex justify-between border-b-2 border-gray-700 dark:border-gray-600 border-opacity-40 mt-2 pb-2">
-			<p className="font-medium text-gray-300">{label}</p>
+		<div className={`flex justify-between ${divClass}`}>
+			<p className="font-medium text-gray-800 dark:text-gray-300 mr-4">
+				{label}
+			</p>
 			<p className={`text-right ${valueClass}`}>{value}</p>
-		</div>
-	);
-};
-
-const BottomRowCell: FC<CellProps> = ({ label, value }: CellProps) => {
-	return (
-		<div className="flex justify-between mt-2">
-			<p className="font-medium text-gray-300">{label}</p>
-			<p className="text-right">{value}</p>
 		</div>
 	);
 };

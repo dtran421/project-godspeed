@@ -1,4 +1,7 @@
-import React, { useState, useEffect, ReactNode } from "react";
+import React, { FC, useState, useEffect, ReactNode } from "react";
+import dynamic from "next/dynamic";
+import { useTheme } from "next-themes";
+import { SkeletonThemeProps } from "react-loading-skeleton";
 import _ from "lodash";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,6 +9,14 @@ import { BsCircleFill } from "react-icons/bs";
 
 import { ShowcaseInfo } from "../../pages/api/StructureTypes";
 import ListCard from "./ListCard";
+
+const SkeletonTheme = dynamic(
+	() =>
+		import("react-loading-skeleton").then((module) => module.SkeletonTheme),
+	{
+		ssr: false
+	}
+) as FC<SkeletonThemeProps>;
 
 interface ShowcaseListProps {
 	heading: string;
@@ -15,7 +26,7 @@ interface ShowcaseListProps {
 	list: ShowcaseInfo[];
 }
 
-const ShowcaseList: React.FunctionComponent<ShowcaseListProps> = ({
+const ShowcaseList: FC<ShowcaseListProps> = ({
 	heading,
 	subheading,
 	emoji,
@@ -23,6 +34,9 @@ const ShowcaseList: React.FunctionComponent<ShowcaseListProps> = ({
 	list
 }: ShowcaseListProps) => {
 	const MAX_CARDS_PER_PAGE = 4;
+
+	const { theme } = useTheme();
+
 	const [isGridVisible, toggleGridVisibility] = useState(true);
 	const [[page, direction], setPage] = useState([0, 1]);
 
@@ -90,7 +104,7 @@ const ShowcaseList: React.FunctionComponent<ShowcaseListProps> = ({
 	const pageButtonClass =
 		"z-10 w-12 h-12 flex items-center justify-center bg-white dark:bg-gray-900 shadow-md rounded-full text-2xl font-bold mr-3 focus:outline-none active:bg-gray-200 transition-colors duration-200 ease-in-out";
 	return (
-		<div className="flex flex-col mx-auto max-w-7xl rounded-xl">
+		<div className="max-w-6xl flex flex-col rounded-xl mx-auto">
 			<div className="p-6 ml-16">
 				<h1 className="flex items-center text-3xl font-bold">
 					{heading}
@@ -115,35 +129,66 @@ const ShowcaseList: React.FunctionComponent<ShowcaseListProps> = ({
 						<FiChevronLeft className="text-purple-600 dark:text-purple-400" />
 					</button>
 				</div>
-				<div className="flex min-h-23">
-					<AnimatePresence>
-						<motion.div
-							className="grid grid-cols-4"
-							variants={gridVariants}
-							initial="hidden"
-							animate={isGridVisible ? "visible" : "hidden"}
-						>
-							{list.map((showcaseInfo, index) => {
-								const minIdx = page * MAX_CARDS_PER_PAGE;
-								if (
-									index >= minIdx &&
-									index < minIdx + MAX_CARDS_PER_PAGE
-								) {
-									return (
-										<motion.div
-											key={index}
-											custom={index % MAX_CARDS_PER_PAGE}
-											variants={itemVariants}
-										>
-											<ListCard
-												showcaseInfo={showcaseInfo}
-											/>
-										</motion.div>
-									);
-								}
-							})}
-						</motion.div>
-					</AnimatePresence>
+				<div className="flex min-h-25">
+					<SkeletonTheme
+						color={theme === "dark" ? "#4B5563" : "#E5E7EB"}
+						highlightColor={
+							theme === "dark" ? "#6B7280" : "#F3F4F6"
+						}
+					>
+						<AnimatePresence>
+							<motion.div
+								className="grid grid-cols-4"
+								variants={gridVariants}
+								initial="hidden"
+								animate={isGridVisible ? "visible" : "hidden"}
+							>
+								{!list.length
+									? _.times(4, (index) => {
+											return (
+												<ListCard
+													key={index}
+													showcaseInfo={{
+														name: "",
+														uuid: "",
+														urlKey: "",
+														imageUrl: "",
+														ticker: "",
+														latestPrice: null,
+														latestChange: null
+													}}
+												/>
+											);
+									  })
+									: list.map((showcaseInfo, index) => {
+											const minIdx =
+												page * MAX_CARDS_PER_PAGE;
+											if (
+												index >= minIdx &&
+												index <
+													minIdx + MAX_CARDS_PER_PAGE
+											) {
+												return (
+													<motion.div
+														key={index}
+														custom={
+															index %
+															MAX_CARDS_PER_PAGE
+														}
+														variants={itemVariants}
+													>
+														<ListCard
+															showcaseInfo={
+																showcaseInfo
+															}
+														/>
+													</motion.div>
+												);
+											}
+									  })}
+							</motion.div>
+						</AnimatePresence>
+					</SkeletonTheme>
 				</div>
 				<div className="flex items-center">
 					<button

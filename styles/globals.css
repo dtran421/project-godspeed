@@ -6,3 +6,8 @@
 	top: 50%;
 	transform: translateY(-50%);
 }
+
+.highcharts-contextmenu div {
+	-webkit-box-shadow: none !important;
+	box-shadow: none !important;
+}

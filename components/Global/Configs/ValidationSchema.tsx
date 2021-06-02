@@ -30,3 +30,21 @@ export const RegisterSchema = Yup.object().shape({
 			)
 		})
 });
+
+export const ListSchema = Yup.object().shape({
+	listName: Yup.string().required("Please enter a name")
+});
+
+export const DeletionSchema = Yup.object().shape({
+	listName: Yup.string().required("Please confirm the watchlist's name")
+});
+
+const phoneNumberRegex = /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/;
+export const UserInfoSchema = Yup.object().shape({
+	name: Yup.string(),
+	email: Yup.string().email("Invalid email"),
+	phoneNumber: Yup.string().matches(
+		phoneNumberRegex,
+		"Phone number is not valid"
+	)
+});

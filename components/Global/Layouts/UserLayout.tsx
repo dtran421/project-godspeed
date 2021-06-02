@@ -13,7 +13,6 @@ const UserLayout: FC<UserLayoutProps> = ({
 	page,
 	userStatus
 }: UserLayoutProps) => {
-	
 	return (
 		<div className="w-full min-h-screen bg-gray-100 dark:bg-gray-800 transition-colors duration-150 ease-in-out">
 			<Navbar page={page} userStatus={userStatus} />

@@ -8,7 +8,6 @@ import {
 	fetchSoleCollector,
 	fetchComplexSneakers,
 	fetchSneakerNewsPopular,
-	fetchComplexSneakersPopular,
 	fetchSoleCollectorPopular
 } from "../components/News/FetchFunctions";
 import PopularNews from "../components/News/PopularNews";

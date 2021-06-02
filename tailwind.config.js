@@ -10,10 +10,11 @@ module.exports = {
 	theme: {
 		extend: {
 			minHeight: {
-				23: "23rem"
+				25: "25rem"
 			},
 			inset: {
-				18: "4.25rem"
+				18: "4.50rem",
+				19: "4.40rem"
 			}
 		}
 	},

@@ -41,12 +41,12 @@ const db = firebase.firestore(app);
 
 export { firebase, db };
 
-function MyApp({ Component, pageProps }) {
+const MyApp = ({ Component, pageProps }) => {
 	return (
 		<ThemeProvider attribute="class">
 			<Component {...pageProps} />
 		</ThemeProvider>
 	);
-}
+};
 
 export default MyApp;

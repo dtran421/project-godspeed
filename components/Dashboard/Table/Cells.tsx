@@ -13,7 +13,7 @@ interface ImageCellProps {
 
 export const imageCell: FC<ImageCellProps> = ({ imageUrl }: ImageCellProps) => {
 	return imageUrl === "" ? null : (
-		<div className="flex items-center justify-center bg-white mx-6 mt-1 rounded-2xl">
+		<div className="flex items-center justify-center bg-white mx-6 mt-1 rounded-xl">
 			<img width="80" src={imageUrl} className="py-2" />
 		</div>
 	);
@@ -135,14 +135,16 @@ export const specialGainCell: FC<SpecialGainCellProps> = ({
 
 interface ActionCellProps {
 	child?: boolean;
+	parent?: string;
 	shoeId: string;
 	name: string;
-	updateGraphShoe: Dispatch<SetStateAction<string[]>>;
-	deleteShoe: (shoeId: string) => void;
+	updateGraphShoe: Dispatch<SetStateAction<[string, string, number[]]>>;
+	deleteShoe: (shoeId: string, child: boolean, parent: string) => void;
 }
 
 export const actionCell: FC<ActionCellProps> = ({
 	child,
+	parent,
 	shoeId,
 	name,
 	updateGraphShoe,
@@ -151,27 +153,29 @@ export const actionCell: FC<ActionCellProps> = ({
 	const [isDropdownVisible, toggleDropdown] = useState(false);
 
 	const menuItemClass =
-		"w-full text-left text-gray-600 font-medium rounded-md p-2 hover:bg-purple-100 hover:text-purple-600 focus:outline-none active:bg-purple-200";
+		"w-full text-left text-gray-600 dark:text-white font-medium rounded-md hover:text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-600 p-2 focus:outline-none";
 	return (
 		<div className="mt-2 mr-4">
 			<OutsideClick updateFunction={toggleDropdown}>
 				{child ? (
 					<>
 						<button
-							className="flex items-end rounded-lg p-1 text-red-600 dark:text-red-400 dark:hover:bg-gray-600 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 focus:outline-none"
+							className="flex items-end rounded-lg p-1 text-red-600 dark:text-red-400 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-700 focus:outline-none"
 							onClick={() => toggleDropdown(!isDropdownVisible)}
 						>
 							<FiX size={20} className="opacity-80" />
 						</button>
 						{isDropdownVisible && (
-							<div className="absolute right-12 z-10 w-32 rounded-lg bg-white dark:bg-gray-900 shadow-lg">
+							<div className="absolute right-14 z-10 w-32 rounded-lg bg-white dark:bg-gray-900 shadow-lg">
 								<div className="w-full flex flex-col items-center p-3">
 									<p className="text-center text-red-400 font-medium pb-2">
 										Are you sure?
 									</p>
 									<button
 										className="w-full bg-red-600 text-white font-medium rounded-md py-1 focus:outline-none active:bg-red-700"
-										onClick={() => deleteShoe(shoeId)}
+										onClick={() =>
+											deleteShoe(shoeId, child, parent)
+										}
 									>
 										Delete
 									</button>
@@ -182,26 +186,29 @@ export const actionCell: FC<ActionCellProps> = ({
 				) : (
 					<>
 						<button
-							className="flex items-end rounded-lg p-1 hover:bg-gray-200 focus:outline-none active:bg-gray-300"
+							className="flex items-end rounded-lg p-1 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none active:bg-gray-300"
 							onClick={() => toggleDropdown(!isDropdownVisible)}
 						>
 							<FiMoreVertical size={20} className="opacity-80" />
 						</button>
 						{isDropdownVisible && (
-							<div className="absolute right-12 z-10 w-44 rounded-lg bg-white shadow-lg">
+							<div className="absolute right-12 z-10 w-44 rounded-lg bg-white dark:bg-gray-900 shadow-lg">
 								<div className="w-full flex flex-col p-2">
 									<button
 										className={menuItemClass}
 										onClick={() => {
 											toggleDropdown(!isDropdownVisible);
-											updateGraphShoe([shoeId, name]);
+											updateGraphShoe([shoeId, name, []]);
 										}}
 									>
 										Graph
 									</button>
 									<button
 										className={menuItemClass}
-										onClick={() => deleteShoe(shoeId)}
+										onClick={() => {
+											toggleDropdown(!isDropdownVisible);
+											deleteShoe(shoeId, child, parent);
+										}}
 									>
 										Remove
 									</button>

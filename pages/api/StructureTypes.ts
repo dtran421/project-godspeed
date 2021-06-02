@@ -88,6 +88,11 @@ export interface ShoeChild {
 	uuid: string;
 }
 
+export interface AddShoe {
+	shoe: string;
+	children: ShoeChild[];
+}
+
 export interface ShoeDetails {
 	name: string;
 	urlKey: string;
@@ -137,4 +142,14 @@ export interface SearchInfo {
 	ticker: string;
 	imageUrl: string;
 	latestPrice: number;
+}
+
+export interface WatchlistData {
+	shoes: Record<string, ShoeChild[]>;
+	created: Date;
+}
+
+export interface UserInfo {
+	name: string;
+	email: string;
 }

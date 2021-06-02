@@ -1,14 +1,14 @@
 import React, { FC, useState, useEffect } from "react";
 import { GetStaticProps } from "next";
+import { withRouter, NextRouter } from "next/router";
 import PageVisibility from "react-page-visibility";
 import Twemoji from "react-twemoji";
-import { useTheme } from "next-themes";
-import { TwitterTimelineEmbed } from "react-twitter-embed";
 
 import {
 	fetchSneakerNewsPopular,
 	fetchSoleCollectorPopular
 } from "../components/News/FetchFunctions";
+import { firebase, db } from "../pages/_app";
 import { PopularStoryInfo } from "./api/StructureTypes";
 import { ModalContext } from "../components/Global/Modal";
 import MainLayout from "../components/Global/Layouts/MainLayout";
@@ -17,6 +17,7 @@ import PopularNews from "../components/News/PopularNews";
 import HighlightPanel from "../components/Drops/HighlightPanel";
 import ShowcaseList from "../components/Index/ShowcaseList";
 interface IndexProps {
+	router: NextRouter;
 	sources: [
 		{
 			name: string;
@@ -26,9 +27,10 @@ interface IndexProps {
 	];
 }
 
-const Index: FC<IndexProps> = ({ sources }: IndexProps) => {
-	const { theme } = useTheme();
-	const [[isFetchingTickers, tickers], updateTickers] = useState([true, []]);
+const Index: FC<IndexProps> = ({ router, sources }: IndexProps) => {
+	const [isMounted, setMounted] = useState(true);
+
+	const [tickers, updateTickers] = useState([]);
 	const [pageIsVisible, setPageVisibility] = useState(true);
 	const handleVisibilityChange = (isVisible) => {
 		setPageVisibility(isVisible);
@@ -40,7 +42,7 @@ const Index: FC<IndexProps> = ({ sources }: IndexProps) => {
 			fetch("/api/mostPopular")
 				.then((response) => response.json())
 				.then(({ tickers, mostPopular }) => {
-					updateTickers([false, tickers]);
+					updateTickers(tickers);
 					updatePopularList(mostPopular);
 				});
 		}
@@ -55,6 +57,44 @@ const Index: FC<IndexProps> = ({ sources }: IndexProps) => {
 		[isFetchingLists, hasFetchedLists, watchlists],
 		updateWatchlists
 	] = useState([true, false, []]);
+	const fetchWatchlists = (userUID: string) => {
+		db.collection("watchlists")
+			.doc(userUID)
+			.collection("lists")
+			.get()
+			.then((listDocs) => {
+				const fetchedWatchlists = [];
+				listDocs.forEach((listDoc) => {
+					fetchedWatchlists.push({
+						value: listDoc.id,
+						label: listDoc.id
+					});
+				});
+				updateWatchlists([false, true, fetchedWatchlists]);
+			})
+			.catch((error) => {
+				console.log("Error getting document:", error);
+			});
+	};
+	useEffect(() => {
+		setMounted(true);
+		firebase.auth().onAuthStateChanged((user) => {
+			if (user) {
+				if (isMounted) {
+					fetchWatchlists(user.uid);
+				}
+			} else {
+				router.push({
+					pathname: "/login",
+					query: { from: router.pathname }
+				});
+			}
+		});
+
+		return () => {
+			setMounted(false);
+		};
+	}, []);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -71,17 +111,14 @@ const Index: FC<IndexProps> = ({ sources }: IndexProps) => {
 		};
 	}, []);
 
-	const [[isFetchingTrending, trendingList], updateTrendingList] = useState([
-		true,
-		[]
-	]);
+	const [trendingList, updateTrendingList] = useState([]);
 	useEffect(() => {
 		let isMounted = true;
 		if (isMounted) {
 			fetch("/api/trending")
 				.then((response) => response.json())
 				.then(({ mostPopular }) => {
-					updateTrendingList([false, mostPopular]);
+					updateTrendingList(mostPopular);
 				});
 		}
 
@@ -90,17 +127,14 @@ const Index: FC<IndexProps> = ({ sources }: IndexProps) => {
 		};
 	}, []);
 
-	const [[isFetchingGainers, gainersList], updateGainersList] = useState([
-		true,
-		[]
-	]);
+	const [gainersList, updateGainersList] = useState([]);
 	useEffect(() => {
 		let isMounted = true;
 		if (isMounted) {
 			fetch("/api/gainers")
 				.then((response) => response.json())
 				.then(({ highestGainers }) => {
-					updateGainersList([false, highestGainers]);
+					updateGainersList(highestGainers);
 				});
 		}
 
@@ -109,122 +143,91 @@ const Index: FC<IndexProps> = ({ sources }: IndexProps) => {
 		};
 	}, []);
 
-	/* useEffect(() => {
-		const script = document.createElement("script");
-		script.src = "https://platform.twitter.com/widgets.js";
-		script.async = true;
-		document.body.appendChild(script);
-	}); */
-
 	return (
 		<MainLayout page={"Home"} userStatus={null}>
-			{isFetchingTickers || isFetchingTrending || isFetchingGainers ? (
-				<div className="flex flex-col h-screen justify-center items-center">
-					<p className="text-2xl font-semibold">Loading...</p>
-				</div>
-			) : (
-				<ModalContext.Provider
-					value={{
-						watchlistsContext: [
-							isFetchingLists,
-							hasFetchedLists,
-							watchlists,
-							updateWatchlists
-						]
-					}}
-				>
-					<div className="w-full flex flex-col align-center">
-						<div className="pt-2 bg-gray-900">
-							<PageVisibility onChange={handleVisibilityChange}>
-								{pageIsVisible && (
-									<TickerBanner tickers={tickers} />
-								)}
-							</PageVisibility>
-						</div>
-						<div className="max-w-5xl flex items-center mt-10 mx-auto">
-							<PopularNews sources={sources} />
-						</div>
-						<div className="flex justify-between my-10 max-w-7xl mx-auto">
-							<div className="w-full max-w-4xl mr-10">
-								<HighlightPanel top3List={top3List} />
-							</div>
-							<div className="h-2/3 rounded-xl overflow-hidden shadow-lg bg-white dark:bg-gray-900">
-								{/* <a
-									className="twitter-timeline h-screen overflow-auto"
-									href="https://twitter.com/shopkickflip/lists/shoe-news-72100?ref_src=twsrc%5Etfw"
-									data-width="450"
-									data-height="800"
-									data-chrome="noheader nofooter noborders"
-									data-theme={theme}
-								/> */}
-								<TwitterTimelineEmbed
-									sourceType="url"
-									url="https://twitter.com/shopkickflip/lists/shoe-news-72100?ref_src=twsrc%5Etfw"
-									options={{
-										width: "400",
-										height: "700"
-									}}
-									theme={theme}
-									noHeader={true}
-									noBorders={true}
-									noFooter={true}
-								/>
-							</div>
-						</div>
-						<ShowcaseList
-							heading={"Trending"}
-							subheading={"Hot shoes right now"}
-							emoji={
-								<Twemoji
-									options={{
-										className: "emoji w-7",
-										folder: "svg",
-										ext: ".svg"
-									}}
-								>
-									<span>🔥</span>
-								</Twemoji>
-							}
-							emojiClass={"bg-yellow-200"}
-							list={trendingList}
-						/>
-						<ShowcaseList
-							heading={"Popular"}
-							subheading={"Most sales over the past 72 hours"}
-							emoji={
-								<Twemoji
-									options={{
-										className: "emoji w-7",
-										folder: "svg",
-										ext: ".svg"
-									}}
-								>
-									<span>💸</span>
-								</Twemoji>
-							}
-							emojiClass={"bg-green-200"}
-							list={popularList}
-						/>
-						<ShowcaseList
-							heading={"Gainers"}
-							subheading={"Biggest gains from their retail price"}
-							emoji={
-								<Twemoji
-									options={{
-										className: "emoji w-6",
-										folder: "svg",
-										ext: ".svg"
-									}}
-								>
-									<span>🚀</span>
-								</Twemoji>
-							}
-							emojiClass={"bg-blue-200"}
-							list={gainersList}
-						/>
+			<ModalContext.Provider
+				value={{
+					watchlistsContext: [
+						isFetchingLists,
+						hasFetchedLists,
+						watchlists,
+						updateWatchlists
+					]
+				}}
+			>
+				<div className="w-full flex flex-col align-center">
+					<div className="sticky top-16 z-20 bg-gray-900 pt-1">
+						<PageVisibility onChange={handleVisibilityChange}>
+							{pageIsVisible && (
+								<TickerBanner tickers={tickers} />
+							)}
+						</PageVisibility>
 					</div>
-				</ModalContext.Provider>
-			)}
+					<div className="max-w-6xl flex flex-col justify-center mx-auto mt-10">
+						<h1 className="flex items-center text-5xl font-bold mb-6">
+							Latest News
+						</h1>
+						<PopularNews sources={sources} />
+					</div>
+					<div className="max-w-6xl flex flex-col mx-auto my-16">
+						<h1 className="flex items-center text-5xl font-bold mb-6">
+							Upcoming Drops
+						</h1>
+						<HighlightPanel top3List={top3List} />
+					</div>
+					<ShowcaseList
+						heading={"Trending"}
+						subheading={"Hot shoes right now"}
+						emoji={
+							<Twemoji
+								options={{
+									className: "emoji w-7",
+									folder: "svg",
+									ext: ".svg"
+								}}
+							>
+								<span>🔥</span>
+							</Twemoji>
+						}
+						emojiClass={"bg-yellow-200"}
+						list={trendingList}
+					/>
+					<ShowcaseList
+						heading={"Popular"}
+						subheading={"Most sales over the past 72 hours"}
+						emoji={
+							<Twemoji
+								options={{
+									className: "emoji w-7",
+									folder: "svg",
+									ext: ".svg"
+								}}
+							>
+								<span>💸</span>
+							</Twemoji>
+						}
+						emojiClass={"bg-green-200"}
+						list={popularList}
+					/>
+					<ShowcaseList
+						heading={"Gainers"}
+						subheading={"Biggest gains from their retail price"}
+						emoji={
+							<Twemoji
+								options={{
+									className: "emoji w-6",
+									folder: "svg",
+									ext: ".svg"
+								}}
+							>
+								<span>🚀</span>
+							</Twemoji>
+						}
+						emojiClass={"bg-blue-200"}
+						list={gainersList}
+					/>
+				</div>
+			</ModalContext.Provider>
 		</MainLayout>
 	);
 };
@@ -252,4 +255,4 @@ export const getStaticProps: GetStaticProps = async () => {
 	};
 };
 
-export default Index;
+export default withRouter(Index);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { FC, useState } from "react";
 import Ticker from "react-ticker";
 import Link from "next/link";
 import { BsCaretUpFill, BsCaretDownFill } from "react-icons/bs";
@@ -7,10 +7,12 @@ interface TickerBannerProps {
 	tickers: Record<string, string | number>[];
 }
 
-const TickerBanner: React.FunctionComponent<TickerBannerProps> = ({
+const TickerBanner: FC<TickerBannerProps> = ({
 	tickers
 }: TickerBannerProps) => {
 	const [speed, setSpeed] = useState(4);
+
+	if (!tickers.length) return null;
 
 	return (
 		<div

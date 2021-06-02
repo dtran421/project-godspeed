@@ -19,7 +19,7 @@ import {
 
 export const DashboardTableColumns = (
 	mode: string,
-	updateGraphShoe: Dispatch<SetStateAction<string[]>>,
+	updateGraphShoe: Dispatch<SetStateAction<[string, string, number[]]>>,
 	deleteShoe: (shoeId: string) => void
 ): Record<string, string | boolean | number | ((any) => void)>[] => [
 	{
@@ -98,9 +98,10 @@ export const DashboardTableColumns = (
 	{
 		Header: "",
 		accessor: "action",
-		Cell: ({ value: { child, shoeId, name } }) =>
+		Cell: ({ value: { child, parent, shoeId, name } }) =>
 			actionCell({
 				child,
+				parent,
 				shoeId,
 				name,
 				updateGraphShoe,
@@ -117,12 +118,12 @@ export const DashboardTableColumns = (
 export const prepareDashboardTable = (
 	shoeInfos: ShoeInfos,
 	newChildrenInfos: Record<string, ChildInfo>,
-	activeShoes: string[],
+	listShoes: string[],
 	shoeChildren: Record<string, ShoeChild[]>
 ): Record<string, string | number>[] => {
 	if (Object.keys(shoeInfos).length === 0) return [];
 	const tableData = [];
-	activeShoes.map((urlKey: string) => {
+	listShoes.map((urlKey: string) => {
 		const {
 			name,
 			ticker,
@@ -167,6 +168,7 @@ export const prepareDashboardTable = (
 				totalSales: sales,
 				action: {
 					child: true,
+					parent: urlKey,
 					shoeId: uuid,
 					name
 				}
@@ -248,6 +250,19 @@ export const prepareSalesTable = (
 		if (index < 10) {
 			const saleDate = new Date(createdAt);
 			const hours = saleDate.getHours();
+			let formattedTime;
+			if (hours === 0 || hours === 12) {
+				formattedTime = `12:${saleDate
+					.getMinutes()
+					.toString()
+					.padStart(2, "0")} ${hours === 0 ? "AM" : "PM"}`;
+			} else {
+				formattedTime = `${
+					hours > 12 ? hours - 12 : hours
+				}:${saleDate.getMinutes().toString().padStart(2, "0")} ${
+					hours > 12 ? "PM" : "AM"
+				}`;
+			}
 
 			const profit = Math.round(amount as number) - retailPrice;
 			tableData.push({
@@ -256,11 +271,7 @@ export const prepareSalesTable = (
 						(saleDate.getMonth() + 1).toString().padStart(2, "0")
 					]
 				} ${saleDate.getDate()}, ${saleDate.getFullYear()}`,
-				time: `${
-					hours >= 12 ? hours - 12 : hours
-				}:${saleDate.getMinutes().toString().padStart(2, "0")} ${
-					hours >= 12 ? "PM" : "AM"
-				}`,
+				time: formattedTime,
 				shoeSize,
 				amount: `$${Math.round(amount as number)}`,
 				profit: `$${profit} (${

@@ -1,142 +1,72 @@
-import React, { FC, useState, useEffect, useRef } from "react";
+import React, {
+	FC,
+	Dispatch,
+	SetStateAction,
+	useState,
+	useEffect,
+	useRef,
+	useContext
+} from "react";
+import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
-import GridLoader from "react-spinners/GridLoader";
 import Highcharts from "highcharts/highstock";
 import HighchartsExporting from "highcharts/modules/exporting";
 import HighchartsReact from "highcharts-react-official";
 
-import { DashboardGraphConfig as GraphConfig } from "./GraphConfig";
-import {
-	CardInfo,
-	ShoeInfos,
-	ChildInfo,
-	ChildInfos,
-	ShoeChild
-} from "../../pages/api/StructureTypes";
-import { prepareDashboardTable } from "./Table/PrepareTableData";
+import { DashboardGraphConfig } from "../Global/Configs/GraphConfig";
+import { DashboardContext } from "../../pages/dashboard";
 import Table from "./Table/Table";
+
+const GridLoader = dynamic(() => import("react-spinners/GridLoader"), {
+	ssr: false
+});
 
 if (typeof Highcharts === "object") {
 	HighchartsExporting(Highcharts);
 }
 
-const fetchShoeInfos = async (
-	shoeInfos: Record<string, CardInfo>,
-	list: string[]
-): Promise<ShoeInfos> => {
-	const newShoeInfos = shoeInfos;
-	const fetchRequests = list.map(async (urlKey) => {
-		if (!(urlKey in newShoeInfos)) {
-			newShoeInfos[urlKey] = {} as CardInfo;
-			const promise = await fetch(`/api/fetchShoe/${urlKey}`)
-				.then((response) => response.json())
-				.then((shoeData: CardInfo) => {
-					newShoeInfos[urlKey] = shoeData;
-				});
-			return promise;
-		}
-	});
-	await Promise.all(fetchRequests);
-	return newShoeInfos;
-};
-
-const fetchChildrenInfos = async (
-	childrenInfos: Record<string, ChildInfo>,
-	children: Record<string, ShoeChild[]>
-): Promise<ChildInfos> => {
-	const newChildrenInfos = childrenInfos;
-	const parentFetchRequests = Object.keys(children).map(async (parentKey) => {
-		const childFetchRequests = children[parentKey].map(async ({ uuid }) => {
-			if (!(uuid in newChildrenInfos)) {
-				newChildrenInfos[uuid] = {} as ChildInfo;
-				const promise = await fetch(`/api/fetchShoe/${uuid}`)
-					.then((response) => response.json())
-					.then((childData: ChildInfo) => {
-						newChildrenInfos[uuid] = childData;
-					});
-				return promise;
-			}
-		});
-		await Promise.all(childFetchRequests);
-	});
-	await Promise.all(parentFetchRequests);
-	return newChildrenInfos;
-};
-
 interface WatchlistDisplayProps {
-	shoeChildren: Record<string, ShoeChild[]> | null;
+	activeList: string;
+	listShoes: string[];
+	creationDate: string;
+	graphShoe: string;
+	shoeName: string;
+	shoeData: number[];
+	updateGraphShoe: Dispatch<SetStateAction<[string, string, number[]]>>;
+	tableData: Record<string, string | number>[];
 }
 
 const WatchlistDisplay: FC<WatchlistDisplayProps> = ({
-	shoeChildren
+	activeList,
+	listShoes,
+	creationDate,
+	graphShoe,
+	shoeName,
+	shoeData,
+	updateGraphShoe,
+	tableData
 }: WatchlistDisplayProps) => {
 	const { theme } = useTheme();
-	const [isMounted, setMounted] = useState(true);
+
+	const {
+		isFetching,
+		isFetchingShoes,
+		isFetchingChildren,
+		shoeInfos
+	} = useContext(DashboardContext);
+
+	const {
+		light: GraphConfigLight,
+		dark: GraphConfigDark
+	} = DashboardGraphConfig;
+	const [graphOptions, updateGraphOptions] = useState(
+		theme === "dark" ? GraphConfigDark : GraphConfigLight
+	);
 	useEffect(() => {
-		setMounted(true);
-		if (isMounted && graphRef?.current !== null) {
-			if (theme === "dark") {
-				GraphConfig.chart["backgroundColor"] = "#111827";
-			} else {
-				GraphConfig.chart["backgroundColor"] = "#FFFFFF";
-			}
-			graphRef.current.chart.redraw();
-		}
-		return () => {
-			setMounted(false);
-		};
-	}, []);
-
-	let activeShoes;
-	if (shoeChildren !== null) {
-		activeShoes = Object.keys(shoeChildren);
-	} else {
-		activeShoes = [];
-	}
-	const [[isFetchingShoes, shoeInfos], updateShoeInfos] = useState([
-		true,
-		{}
-	]);
-	const [
-		[isFetchingChildren, childrenInfos],
-		updateChildrenInfos
-	] = useState([true, {}]);
-	const [tableData, updateTableData] = useState([]);
-
-	const processShoeInfos = async () => {
-		const newShoeInfos = await fetchShoeInfos(shoeInfos, activeShoes);
-		const newChildrenInfos = await fetchChildrenInfos(
-			childrenInfos,
-			shoeChildren
-		);
-		updateChildrenInfos([false, newChildrenInfos]);
-		updateShoeInfos([false, newShoeInfos]);
-		updateTableData(
-			prepareDashboardTable(
-				newShoeInfos,
-				newChildrenInfos,
-				activeShoes,
-				shoeChildren
-			)
-		);
-		if (activeShoes.length > 0) {
-			updateGraphShoe([
-				activeShoes[0],
-				newShoeInfos[activeShoes[0]].name
-			]);
-		}
-	};
-
-	useEffect(() => {
-		if (shoeChildren !== null) {
-			processShoeInfos();
-		}
-	}, [shoeChildren]);
-
-	const [graphOptions, updateGraphOptions] = useState(GraphConfig);
-	const graphRef = useRef(null);
-
-	const [[graphShoe, shoeName], updateGraphShoe] = useState(["", ""]);
+		const options = theme === "dark" ? GraphConfigDark : GraphConfigLight;
+		options.series = [{ ...options.series[0], data: shoeData }];
+		updateGraphOptions(options);
+	}, [theme]);
 
 	const fetchGraphData = async (newGraphShoe: string) => {
 		await fetch(`/api/graph/${shoeInfos[newGraphShoe].uuid}`)
@@ -144,15 +74,16 @@ const WatchlistDisplay: FC<WatchlistDisplayProps> = ({
 			.then(({ data: newData }) => {
 				updateGraphOptions({
 					...graphOptions,
-					subtitle: { text: shoeName },
 					series: [{ ...graphOptions.series[0], data: newData }]
 				});
+				updateGraphShoe([newGraphShoe, shoeName, newData]);
 				graphRef.current.chart.hideLoading();
 			});
 	};
 
+	const graphRef = useRef(null);
 	useEffect(() => {
-		if (graphShoe !== "") {
+		if (graphShoe) {
 			fetchGraphData(graphShoe);
 			if (graphRef.current !== null) {
 				graphRef.current.chart.showLoading();
@@ -160,32 +91,56 @@ const WatchlistDisplay: FC<WatchlistDisplayProps> = ({
 		}
 	}, [graphShoe, shoeName]);
 
-	return (
-		<div className="w-full bg-white dark:bg-gray-900 rounded-xl shadow-lg">
-			{activeShoes.length > 0 ? (
+	return isFetching || isFetchingShoes || isFetchingChildren ? (
+		<div className="w-full h-96 flex p-6 items-center justify-center my-auto opacity-90">
+			<GridLoader color={"#7C3AED"} size={24} margin={6} />
+		</div>
+	) : (
+		<>
+			{activeList && (
+				<div className="grid grid-cols-3 gap-6 divide-y-6">
+					<div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6">
+						<h2 className="text-gray-700 dark:text-gray-300">
+							Currently viewing
+						</h2>
+						<h3 className="text-2xl font-medium">{activeList}</h3>
+					</div>
+					<div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6">
+						<h2 className="text-gray-700 dark:text-gray-300">
+							Items tracking
+						</h2>
+						<h3 className="text-2xl font-medium">
+							{listShoes.length}
+						</h3>
+					</div>
+					<div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6">
+						<h2 className="text-gray-700 dark:text-gray-300">
+							Date created
+						</h2>
+						<h3 className="text-2xl font-medium">{creationDate}</h3>
+					</div>
+				</div>
+			)}
+			{listShoes.length ? (
 				<>
-					{isFetchingShoes || isFetchingChildren ? (
-						<div className="flex p-6 justify-center my-auto opacity-90">
-							<GridLoader
-								color={"#7C3AED"}
-								loading={isFetchingShoes || isFetchingChildren}
-								size={18}
-								margin={6}
-							/>
+					<div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg">
+						<div className="bg-white dark:bg-gray-900 rounded-xl m-8 p-4">
+							<h3 className="text-xl text-center font-medium mb-6">
+								{shoeName}
+							</h3>
+							{graphOptions.series[0].data.length !== 0 && (
+								<HighchartsReact
+									ref={graphRef}
+									highcharts={Highcharts}
+									constructorType={"stockChart"}
+									options={graphOptions}
+									allowChartUpdate={true}
+								/>
+							)}
 						</div>
-					) : (
+					</div>
+					<div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg">
 						<div className="w-full">
-							<div className="bg-white dark:bg-gray-900 rounded-xl m-8 p-4">
-								{graphOptions.series[0].data.length > 0 && (
-									<HighchartsReact
-										ref={graphRef}
-										highcharts={Highcharts}
-										constructorType={"stockChart"}
-										options={graphOptions}
-										allowChartUpdate={true}
-									/>
-								)}
-							</div>
 							{tableData && (
 								<Table
 									tableData={tableData}
@@ -193,19 +148,19 @@ const WatchlistDisplay: FC<WatchlistDisplayProps> = ({
 								/>
 							)}
 						</div>
-					)}
+					</div>
 				</>
 			) : (
-				<div className="w-full flex flex-col justify-center">
-					<p className="text-xl text-center text-gray-700 p-16 m-4">
+				<div className="w-full flex flex-col justify-center bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 my-8">
+					<p className="text-xl text-center text-gray-700 dark:text-gray-300 p-16 m-4">
 						No data to show.{" "}
-						{shoeChildren === null
-							? "Create a new watchlist to get started!"
-							: "Add a shoe to track!"}
+						{activeList
+							? "Add a shoe to track!"
+							: "Create a new watchlist to get started!"}
 					</p>
 				</div>
 			)}
-		</div>
+		</>
 	);
 };
 

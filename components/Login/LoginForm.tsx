@@ -1,10 +1,20 @@
-import React, { Dispatch, SetStateAction, useState } from "react";
-import { useTheme } from "next-themes";
+import React, {
+	FC,
+	Dispatch,
+	SetStateAction,
+	useState,
+	useEffect
+} from "react";
+import { NextRouter, withRouter } from "next/router";
 import { Formik, Form, Field } from "formik";
+import { BsArrowLeft } from "react-icons/bs";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
 import { firebase } from "../../pages/_app";
-import { RegisterSchema, LoginSchema } from "./ValidationSchema";
+import {
+	RegisterSchema,
+	LoginSchema
+} from "../Global/Configs/ValidationSchema";
 
 const intialValues = {
 	email: "",
@@ -12,24 +22,57 @@ const intialValues = {
 	confirmPassword: ""
 };
 
-const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
-	const { theme } = useTheme();
-	const [mode, setMode] = useState("login");
-	const [loginError, updateError] = useState({});
-	const [showPassword, togglePassword] = useState(false);
+interface LoginFormProps {
+	router: NextRouter;
+}
 
-	const loginCredentials = (values, { setSubmitting }) => {
+const LoginForm: FC<LoginFormProps> = ({ router }: LoginFormProps) => {
+	const googleProvider = new firebase.auth.GoogleAuthProvider();
+	useEffect(() => {
 		firebase
 			.auth()
-			.signInWithEmailAndPassword(values.email, values.password)
-			.then((/* userCredential */) => {
-				// const user = userCredential.user;
-				// router.push("/dashboard");
+			.getRedirectResult()
+			.then((result) => {
+				const credential: firebase.auth.OAuthCredential =
+					result.credential;
+				if (credential) {
+					// This gives you a Google Access Token. You can use it to access the Google API.
+					const token = credential.accessToken;
+					if (router.query && router.query.from) {
+						router.push(router.query.from as string);
+					} else {
+						router.push("/dashboard");
+					}
+				}
 			})
 			.catch((error) => {
 				const errorCode = error.code;
 				const errorMessage = error.message;
-				updateError({ message: error.message });
+				updateError({ message: errorMessage });
+				console.log(errorCode, errorMessage);
+			});
+	});
+
+	const [mode, setMode] = useState("login");
+	const [loginError, updateError] = useState({});
+	const [showPassword, togglePassword] = useState(false);
+
+	const loginCredentials = ({ email, password }, setSubmitting) => {
+		firebase
+			.auth()
+			.signInWithEmailAndPassword(email, password)
+			.then((/* userCredential */) => {
+				// const user = userCredential.user;
+				if (router.query && router.query.from) {
+					router.push(router.query.from as string);
+				} else {
+					router.push("/dashboard");
+				}
+			})
+			.catch((error) => {
+				const errorCode = error.code;
+				const errorMessage = error.message;
+				updateError({ message: errorMessage });
 				console.log(errorCode, errorMessage);
 			})
 			.finally(() => {
@@ -37,7 +80,7 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 			});
 	};
 
-	const registerCredentials = (values, { setSubmitting }) => {
+	const registerCredentials = (values, setSubmitting) => {
 		firebase
 			.auth()
 			.createUserWithEmailAndPassword(values.email, values.password)
@@ -56,36 +99,40 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 			});
 	};
 
-	const inputClass = `${
-		theme === "dark" ? "bg-gray-700" : "bg-blue-50"
-	} w-full p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-40`;
+	const loginWithGoogle = () => {
+		firebase.auth().signInWithRedirect(googleProvider);
+	};
+
+	const inputClass =
+		"w-full p-2 bg-blue-50 dark:bg-gray-800 dark:border-2 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-40";
+	const socialButtonClass =
+		"w-full flex items-center justify-center rounded-full shadow-lg text-gray-800 font-medium bg-white border border-gray-300 dark:border-gray-700 focus:outline-none px-6 py-2 my-2";
 	return (
 		<Formik
 			initialValues={intialValues}
 			validationSchema={mode === "login" ? LoginSchema : RegisterSchema}
 			onSubmit={(values, { setSubmitting }) => {
 				mode === "login"
-					? loginCredentials(values, { setSubmitting })
-					: registerCredentials(values, {
-							setSubmitting
-					  });
+					? loginCredentials(values, setSubmitting)
+					: registerCredentials(values, setSubmitting);
 			}}
 		>
 			{({ values, errors, touched, resetForm, isSubmitting }) => {
 				return (
-					<Form className="flex flex-col justify-center items-center px-3 w-full">
+					<Form className="w-full flex flex-col justify-center items-center px-3">
 						{mode === "register" && (
 							<div className="w-full p-4">
-								<span
-									className="text-blue-500 cursor-pointer"
+								<p
+									className="flex items-center text-blue-500 cursor-pointer"
 									onClick={() => {
 										updateError({});
 										resetForm();
 										setMode("login");
 									}}
 								>
-									{"<-- Back to Login"}
-								</span>
+									<BsArrowLeft size={24} className="mr-1" />{" "}
+									Back to Login
+								</p>
 							</div>
 						)}
 						<h1
@@ -93,7 +140,7 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 								mode === "login" ? "pt-8" : ""
 							} pb-4`}
 						>
-							{mode}
+							{mode === "login" ? "Login" : "Register"}
 						</h1>
 						<div className="flex flex-col w-full justify-center px-6 pb-4 mx-10">
 							<Error
@@ -163,11 +210,44 @@ const LoginForm: React.FunctionComponent<Record<string, null>> = () => {
 								Submit
 							</button>
 						</div>
-
 						{mode === "login" && (
-							<div className="w-4/5 flex justify-center border-t border-black p-4">
+							<div className="w-4/5 flex flex-col items-center border-t border-black dark:border-white p-4">
+								<button
+									type="button"
+									className={socialButtonClass}
+									onClick={() => loginWithGoogle()}
+								>
+									Sign In with Google
+									<img
+										src="https://www.freepnglogos.com/uploads/google-logo-png/google-logo-png-google-icon-logo-png-transparent-svg-vector-bie-supply-14.png"
+										width={20}
+										className="ml-2"
+									/>
+								</button>
+								<button
+									type="button"
+									className={socialButtonClass}
+								>
+									Sign In with Twitter
+									<img
+										src="https://www.freepnglogos.com/uploads/twitter-logo-png/twitter-logo-vector-png-clipart-1.png"
+										width={25}
+										className="ml-2"
+									/>
+								</button>
+								<button
+									type="button"
+									className={socialButtonClass}
+								>
+									Sign In with Apple
+									<img
+										src="https://www.transparentpng.com/thumb/apple-logo/d9RxbG-apple-logo-free-png.png"
+										width={20}
+										className="ml-2"
+									/>
+								</button>
 								<span
-									className="text-blue-500 cursor-pointer"
+									className="text-blue-500 cursor-pointer my-2"
 									onClick={() => {
 										updateError({});
 										resetForm();
@@ -189,9 +269,7 @@ export interface HeaderProps {
 	headerText: string;
 }
 
-const InputHeader: React.FunctionComponent<HeaderProps> = ({
-	headerText
-}: HeaderProps) => {
+const InputHeader: FC<HeaderProps> = ({ headerText }: HeaderProps) => {
 	return <p className="text-xl mt-4 mb-1">{headerText}</p>;
 };
 
@@ -200,19 +278,21 @@ interface ErrorProps {
 	touched: Record<string, boolean>;
 }
 
-const Error: React.FunctionComponent<ErrorProps> = ({
-	errors,
-	touched
-}: ErrorProps) => {
+export const Error: FC<ErrorProps> = ({ errors, touched }: ErrorProps) => {
 	let message;
 	if (errors.creation) message = errors.creation;
 	else if (errors.email && touched.email) message = errors.email;
 	else if (errors.password && touched.password) message = errors.password;
 	else if (errors.confirmPassword && touched.confirmPassword)
 		message = errors.confirmPassword;
+	else if (errors.message) {
+		message = errors.message;
+	} else {
+		message = null;
+	}
 
 	return message ? (
-		<p className="px-2 py-2 mt-2 mb-4 border-l-4 border-red-500 bg-red-100">
+		<p className="px-2 py-2 mt-2 mb-4 border-l-4 border-red-500 dark:border-red-600 bg-red-100 dark:bg-red-900 dark:bg-opacity-50">
 			{message}
 		</p>
 	) : null;
@@ -223,24 +303,25 @@ interface PasswordToggleProps {
 	togglePassword: Dispatch<SetStateAction<boolean>>;
 }
 
-const PasswordToggle: React.FunctionComponent<PasswordToggleProps> = ({
+const PasswordToggle: FC<PasswordToggleProps> = ({
 	showPassword,
 	togglePassword
 }: PasswordToggleProps) => {
-	const iconClasses = "text-purple-500 opacity-75 active:text-purple-700";
+	const iconClass =
+		"text-purple-500 dark:text-purple-600 opacity-75 dark:opacity-90 active:text-purple-700 dark:active:text-purple-800";
 	return (
 		<button
 			type="button"
-			className="absolute right-0 top-0 vertical-align rounded-full px-2 py-1 mr-6 focus:outline-none"
+			className="absolute right-0 top-0 vertical-align rounded-full px-2 py-1 mr-2 focus:outline-none"
 			onClick={() => togglePassword(!showPassword)}
 		>
 			{showPassword ? (
-				<FiEyeOff className={iconClasses} size={20} />
+				<FiEyeOff className={iconClass} size={20} />
 			) : (
-				<FiEye className={iconClasses} size={20} />
+				<FiEye className={iconClass} size={20} />
 			)}
 		</button>
 	);
 };
 
-export default LoginForm;
+export default withRouter(LoginForm);

@@ -7,14 +7,15 @@ import Highcharts from "highcharts/highstock";
 import HighchartsExporting from "highcharts/modules/exporting";
 import HighchartsReact from "highcharts-react-official";
 
-import SelectStyles from "../../components/Global/SelectConfig";
-import { ShoePageGraphConfig as GraphConfig } from "../../components/Dashboard/GraphConfig";
+import selectStyles from "../../components/Global/Configs/SelectConfig";
+import { ShoePageGraphConfig } from "../../components/Global/Configs/GraphConfig";
 import { months } from "../drops";
 import MainLayout from "../../components/Global/Layouts/MainLayout";
 import { ShoeDetails, ChildInfo, ShoeChild } from "../api/StructureTypes";
 import StatsPanel, { StatsObject } from "../../components/ShoePage/StatsPanel";
 import SalesTable from "../../components/ShoePage/SalesTable";
 import { prepareSalesTable } from "../../components/Dashboard/Table/PrepareTableData";
+import { FiPlus } from "react-icons/fi";
 
 if (typeof Highcharts === "object") {
 	HighchartsExporting(Highcharts);
@@ -129,7 +130,13 @@ const ShoePage: FC<ShoePageProps> = ({
 		}
 	}, [selectedSize]);
 
-	const [graphOptions, updateGraphOptions] = useState(GraphConfig);
+	const {
+		light: GraphConfigLight,
+		dark: GraphConfigDark
+	} = ShoePageGraphConfig;
+	const [graphOptions, updateGraphOptions] = useState(
+		theme === "dark" ? GraphConfigDark : GraphConfigLight
+	);
 	useEffect(() => {
 		updateGraphOptions({
 			...graphOptions,
@@ -138,25 +145,10 @@ const ShoePage: FC<ShoePageProps> = ({
 	}, []);
 
 	useEffect(() => {
-		const options = graphOptions;
-		if (options.series[0].data[0] == 0) {
-			options.series = [{ ...graphOptions.series[0], data }];
-		}
-		if (theme === "dark") {
-			options.plotOptions.areaspline.fillColor.stops = [
-				[0, "#8B5CF6"],
-				[1, "#111827"]
-			];
-		} else {
-			options.plotOptions.areaspline.fillColor.stops = [
-				[0, "#8B5CF6"],
-				[1, "#FFFFFF"]
-			];
-		}
-		updateGraphOptions({ ...options });
+		const options = theme === "dark" ? GraphConfigDark : GraphConfigLight;
+		options.series = [{ ...options.series[0], data }];
+		updateGraphOptions(options);
 	}, [theme]);
-
-	console.log(description);
 
 	return (
 		<MainLayout page={name} userStatus={null}>
@@ -182,28 +174,38 @@ const ShoePage: FC<ShoePageProps> = ({
 										[{ticker}]
 									</h2>
 								</div>
-								<div className="flex justify-end">
-									<p className="text-2xl font-medium mr-3">
-										Size{" "}
-									</p>
-									<div>
-										<Select
-											closeMenuOnSelect={true}
-											isSearchable={false}
-											isClearable={false}
-											defaultValue={shoeChildren[0]}
-											getOptionValue={(option) =>
-												`${option.label}`
-											}
-											options={shoeChildren}
-											styles={SelectStyles}
-											className="w-20 text-xl"
-											onChange={(selectedOption) => {
-												selectedOption =
-													selectedOption.value;
-												setSize(selectedOption);
-											}}
-										/>
+								<div className="flex justify-end items-start">
+									<div className="flex items-center">
+										<button className="flex items-center text-lg font-medium rounded-full border-2 border-purple-600 focus:outline-none px-4 mr-6">
+											<span className="h-full rounded-full mr-2">
+												<FiPlus size={22} />
+											</span>
+											<span className="py-2">
+												Add to Watchlist
+											</span>
+										</button>
+										<p className="text-2xl font-medium mr-3">
+											Size{" "}
+										</p>
+										<div>
+											<Select
+												closeMenuOnSelect={true}
+												isSearchable={false}
+												isClearable={false}
+												defaultValue={shoeChildren[0]}
+												getOptionValue={(option) =>
+													`${option.label}`
+												}
+												options={shoeChildren}
+												styles={selectStyles(theme)}
+												className="w-24 text-xl"
+												onChange={(selectedOption) => {
+													selectedOption =
+														selectedOption.value;
+													setSize(selectedOption);
+												}}
+											/>
+										</div>
 									</div>
 								</div>
 								<div className="flex justify-center bg-white rounded-xl border-gray-200 shadow-lg px-2 py-1 my-6">
@@ -234,7 +236,7 @@ const ShoePage: FC<ShoePageProps> = ({
 								</div>
 							)}
 							<div className="w-full flex flex-col justify-center items-center bg-white dark:bg-gray-900 rounded-xl p-8 my-8">
-								<h1 className="text-3xl font-semibold">
+								<h1 className="text-3xl font-semibold mb-4">
 									Latest Sales
 								</h1>
 								<HighchartsReact

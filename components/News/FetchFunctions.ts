@@ -241,10 +241,6 @@ export const fetchComplexSneakers = (): Promise<Record<string, string>[]> => {
 						}
 					) => {
 						if (storyCount < MAX_STORIES) {
-							const {
-								transformations: { height, width, x, y, crop },
-								asset: { cloudinaryId, seoFilename }
-							} = transformation;
 							const currDate = new Date();
 							const postDate = new Date(datePublished);
 							const time = Math.floor(
@@ -262,17 +258,41 @@ export const fetchComplexSneakers = (): Promise<Record<string, string>[]> => {
 									: time === 1
 									? `${time} hour ago`
 									: `${time} hours ago`;
+
+							if (transformation.transformations) {
+								const {
+									transformations: {
+										height,
+										width,
+										x,
+										y,
+										crop
+									},
+									asset: { cloudinaryId, seoFilename }
+								} = transformation;
+								latestStories.push({
+									headline: headline,
+									link: `https://www.complex.com/sneakers/${alias}`,
+									postTime: postTime,
+									imageUrl: `https://images.complex.com/complex/images/${
+										crop
+											? `c_crop,h_${height},w_${width},x_${x},y_${y}/`
+											: ""
+									}c_fill,dpr_auto,f_auto,g_face,h_183,q_auto,w_325/fl_lossy,pg_1/${cloudinaryId}/${seoFilename}?fimg-client-default`
+								});
+							} else {
+								const {
+									asset: { cloudinaryId, seoFilename }
+								} = transformation;
+								latestStories.push({
+									headline: headline,
+									link: `https://www.complex.com/sneakers/${alias}`,
+									postTime: postTime,
+									imageUrl: `https://images.complex.com/complex/images/c_fill,dpr_auto,f_auto,g_face,h_183,q_auto,w_325/fl_lossy,pg_1/${cloudinaryId}/${seoFilename}?fimg-client-default`
+								});
+							}
+
 							storyCount++;
-							latestStories.push({
-								headline: headline,
-								link: `https://www.complex.com/sneakers/${alias}`,
-								postTime: postTime,
-								imageUrl: `https://images.complex.com/complex/images/${
-									crop
-										? `c_crop,h_${height},w_${width},x_${x},y_${y}/`
-										: ""
-								}c_fill,dpr_auto,f_auto,g_face,h_183,q_auto,w_325/fl_lossy,pg_1/${cloudinaryId}/${seoFilename}?fimg-client-default`
-							});
 						}
 						return latestStories;
 					},

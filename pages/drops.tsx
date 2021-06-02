@@ -1,8 +1,13 @@
-import React, { FC, useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import { FiArrowUp } from "react-icons/fi";
+import React, { FC, useState, useEffect, useRef } from "react";
+import { withRouter, NextRouter } from "next/router";
+import { useTheme } from "next-themes";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiChevronUp } from "react-icons/fi";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
+import _ from "lodash";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 
+import { firebase, db } from "../pages/_app";
 import { ModalContext } from "../components/Global/Modal";
 import { MAX_SHOES_PER_LINE } from "./api/newReleases";
 import MainLayout from "../components/Global/Layouts/MainLayout";
@@ -26,6 +31,11 @@ export const months = {
 	"12": "Dec"
 };
 
+const showButtonVariants = {
+	visible: { opacity: 1, transition: { duration: 0.5 } },
+	hidden: { opacity: 0, transition: { duration: 0.3 } }
+};
+
 const prepMonth = (router) => {
 	const monthQuery = router.query.month as string;
 	let checkMonth = new Date().getMonth() + 1;
@@ -40,8 +50,14 @@ const prepMonth = (router) => {
 	return checkMonth.toString().padStart(2, "0");
 };
 
-const Drops: FC<null> = () => {
-	const router = useRouter();
+export interface DropsProps {
+	router: NextRouter;
+}
+
+const Drops: FC<DropsProps> = ({ router }: DropsProps) => {
+	const { theme } = useTheme();
+
+	const [isMounted, setMounted] = useState(true);
 
 	const [[month, index, releaseMonths], updateMonth] = useState([
 		prepMonth(router),
@@ -58,21 +74,60 @@ const Drops: FC<null> = () => {
 		[isFetchingLists, hasFetchedLists, watchlists],
 		updateWatchlists
 	] = useState([true, false, []]);
+	const fetchWatchlists = (userUID: string) => {
+		db.collection("watchlists")
+			.doc(userUID)
+			.collection("lists")
+			.get()
+			.then((listDocs) => {
+				const fetchedWatchlists = [];
+				listDocs.forEach((listDoc) => {
+					fetchedWatchlists.push({
+						value: listDoc.id,
+						label: listDoc.id
+					});
+				});
+				updateWatchlists([false, true, fetchedWatchlists]);
+			})
+			.catch((error) => {
+				console.log("Error getting document:", error);
+			});
+	};
+	useEffect(() => {
+		setMounted(true);
+		firebase.auth().onAuthStateChanged((user) => {
+			if (user) {
+				if (isMounted) {
+					fetchWatchlists(user.uid);
+				}
+			} else {
+				router.push({
+					pathname: "/login",
+					query: { from: router.pathname }
+				});
+			}
+		});
+
+		return () => {
+			setMounted(false);
+		};
+	}, []);
 
 	useEffect(() => {
 		let isMounted = true;
 		if (isMounted) {
+			updateNewReleases([true, newReleases]);
 			fetch(`/api/newReleases?month=${month}`)
 				.then((response) => response.json())
 				.then(
 					({
 						top3,
-						newReleases,
+						newReleases: fetchedNewReleases,
 						month: { current, index },
 						releaseMonths
 					}) => {
 						updateTop3List(top3);
-						updateNewReleases([false, newReleases]);
+						updateNewReleases([false, fetchedNewReleases]);
 						updateMonth([current, index, releaseMonths]);
 						router.push(`?month=${current}`, "/drops", {
 							shallow: true
@@ -92,6 +147,25 @@ const Drops: FC<null> = () => {
 		router.push(`?month=${newMonth}`, "/drops", { shallow: true });
 	};
 
+	const [isVisibleTopButton, toggleVisibilityTopButton] = useState(false);
+	const drops = useRef(null);
+	useEffect(() => {
+		const toggleTopButton = () => {
+			if (
+				drops.current &&
+				drops.current.getBoundingClientRect().top < 0
+			) {
+				toggleVisibilityTopButton(true);
+			} else {
+				toggleVisibilityTopButton(false);
+			}
+		};
+
+		document.addEventListener("scroll", toggleTopButton);
+
+		return () => document.removeEventListener("scroll", toggleTopButton);
+	});
+
 	const buttonClass =
 		"flex items-center text-gray-800 dark:text-gray-200 mx-4 disabled:cursor-not-allowed disabled:text-gray-400 dark:disabled:text-gray-700 focus:outline-none";
 	const arrowProps = {
@@ -100,12 +174,11 @@ const Drops: FC<null> = () => {
 	};
 
 	return (
-		<MainLayout page={"Drops"} userStatus={null}>
-			{isFetchingNewReleases ? (
-				<div className="flex flex-col h-screen justify-center items-center">
-					<p className="text-2xl font-semibold">Loading...</p>
-				</div>
-			) : (
+		<SkeletonTheme
+			color={theme === "dark" ? "#4B5563" : "#E5E7EB"}
+			highlightColor={theme === "dark" ? "#6B7280" : "#F3F4F6"}
+		>
+			<MainLayout page={"Drops"} userStatus={null}>
 				<ModalContext.Provider
 					value={{
 						watchlistsContext: [
@@ -116,17 +189,17 @@ const Drops: FC<null> = () => {
 						]
 					}}
 				>
-					<div className="max-w-5xl mx-auto">
+					<div className="max-w-5xl mx-auto mb-16">
 						<h1 className="text-5xl font-bold mt-10 mb-6">
 							Upcoming Drops
 						</h1>
 						<HighlightPanel top3List={top3List} />
 					</div>
-					<div className="sticky top-18 z-10 flex justify-center w-full bg-purple-200 dark:bg-purple-600 p-3 mb-8">
+					<div className="sticky top-19 z-20 flex justify-center w-full bg-white dark:bg-gray-900 border-t border-b border-gray-200 dark:border-gray-700 p-4 mb-8">
 						<div className="flex justify-between max-w-md">
 							<button
 								className={buttonClass}
-								disabled={index === 0}
+								disabled={index === 0 || isFetchingNewReleases}
 							>
 								<BsChevronLeft
 									{...arrowProps}
@@ -138,7 +211,10 @@ const Drops: FC<null> = () => {
 							</p>
 							<button
 								className={buttonClass}
-								disabled={index === releaseMonths.length - 1}
+								disabled={
+									index === releaseMonths.length - 1 ||
+									isFetchingNewReleases
+								}
 							>
 								<BsChevronRight
 									{...arrowProps}
@@ -147,52 +223,112 @@ const Drops: FC<null> = () => {
 							</button>
 						</div>
 					</div>
-					<div className="max-w-6xl mx-auto">
-						{Object.keys(newReleases).map((releaseDate, index) => {
-							const dateComponents = releaseDate.split("-");
-							return (
-								<div
-									key={index}
-									className="max-w-6xl mx-auto mb-4"
-								>
-									<h1 className="text-4xl font-bold mt-10 mb-4">{`${
-										months[dateComponents[1]]
-									} ${dateComponents[2].replace(
-										/^0+/,
-										""
-									)}`}</h1>
-									<div
-										className={`grid grid-cols-${MAX_SHOES_PER_LINE} gap-6`}
-									>
-										{newReleases[releaseDate].map(
-											(releaseInfo, index) => {
-												return (
-													<ReleaseCard
-														key={index}
-														releaseInfo={
-															releaseInfo
+					<div ref={drops} className="max-w-6xl mx-auto">
+						{isFetchingNewReleases
+							? _.times(2, (index) => {
+									return (
+										<div
+											key={index}
+											className="max-w-6xl mx-auto mb-4"
+										>
+											<h1 className="text-4xl font-bold mt-10 mb-4">
+												<Skeleton width={200} />
+											</h1>
+											<div
+												className={`grid grid-cols-${MAX_SHOES_PER_LINE} gap-6`}
+											>
+												{_.times(4, (index) => {
+													return (
+														<ReleaseCard
+															key={index}
+															releaseInfo={{
+																urlKey: "",
+																uuid: "",
+																name: "",
+																ticker: "",
+																imageUrl: "",
+																releaseDate: "",
+																prices: null
+															}}
+														/>
+													);
+												})}
+											</div>
+										</div>
+									);
+							  })
+							: Object.keys(newReleases).map(
+									(releaseDate, index) => {
+										const dateComponents = releaseDate.split(
+											"-"
+										);
+										return (
+											<div
+												key={index}
+												className="max-w-6xl mx-auto mb-4"
+											>
+												<h1 className="text-4xl font-bold mt-10 mb-4">{`${
+													months[dateComponents[1]]
+												} ${dateComponents[2].replace(
+													/^0+/,
+													""
+												)}`}</h1>
+												<div
+													className={`grid grid-cols-${MAX_SHOES_PER_LINE} gap-6`}
+												>
+													{newReleases[
+														releaseDate
+													].map(
+														(
+															releaseInfo,
+															index
+														) => {
+															return (
+																<ReleaseCard
+																	key={index}
+																	releaseInfo={
+																		releaseInfo
+																	}
+																/>
+															);
 														}
-													/>
-												);
-											}
-										)}
-									</div>
-								</div>
-							);
-						})}
+													)}
+												</div>
+											</div>
+										);
+									}
+							  )}
 					</div>
-					<div className="fixed right-8 bottom-8">
-						<button className="rounded-full border-4 border-gray-400 focus:outline-none">
-							<FiArrowUp
-								size={42}
-								className="stroke-2 text-purple-400"
-							/>
-						</button>
-					</div>
+					<AnimatePresence>
+						{isVisibleTopButton && (
+							<motion.div
+								initial="hidden"
+								animate="visible"
+								exit="hidden"
+								variants={showButtonVariants}
+								className="fixed right-8 bottom-8"
+							>
+								<button
+									className="w-12 h-12 flex items-center justify-center rounded-lg bg-purple-500 dark:bg-purple-600 focus:outline-none shadow-xl p-1"
+									onClick={() =>
+										window.scrollTo({
+											top: 0,
+											behavior: "smooth"
+										})
+									}
+								>
+									<FiChevronUp
+										size={36}
+										className="text-white dark:text-gray-50"
+									/>
+								</button>
+							</motion.div>
+						)}
+					</AnimatePresence>
 				</ModalContext.Provider>
-			)}
-		</MainLayout>
+			</MainLayout>
+		</SkeletonTheme>
 	);
 };
 
-export default Drops;
+export default withRouter(Drops);

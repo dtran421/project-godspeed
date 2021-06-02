@@ -1,19 +1,19 @@
 import React, { FC, ReactNode, Dispatch, useRef, useEffect } from "react";
 
-function useOutsideListener(ref, updateFunction) {
+const useOutsideListener = (ref, updateFunction) => {
 	useEffect(() => {
-		function handleClickOutside(event) {
+		const handleClickOutside = (event) => {
 			if (ref.current && !ref.current.contains(event.target)) {
 				updateFunction(false);
 			}
-		}
+		};
 
 		document.addEventListener("mousedown", handleClickOutside);
 		return () => {
 			document.removeEventListener("mousedown", handleClickOutside);
 		};
 	}, [ref]);
-}
+};
 
 interface OutsideClickProps {
 	children: ReactNode;
