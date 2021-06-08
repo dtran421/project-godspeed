@@ -383,16 +383,22 @@ const ShoePage: FC<ShoePageProps> = ({
 };
 
 export const getServerSideProps: GetServerSideProps = async ({
+	req,
 	query: { urlKey }
 }) => {
+	const host = req.headers.host;
 	const response = await fetch(
-		`http://localhost:3000/api/fetchDetails/${urlKey}`
+		`${
+			host.indexOf("localhost") > -1 ? "http:" : "https:"
+		}//${host}/api/fetchDetails/${urlKey}`
 	);
 	const results = await response.json();
 
 	const uuid = results.details.uuid;
 	const salesResponse = await fetch(
-		`http://localhost:3000/api/sales/${uuid}`
+		`${
+			host.indexOf("localhost") > -1 ? "http:" : "https:"
+		}//${host}/api/sales/${uuid}`
 	);
 	const salesResults = await salesResponse.json();
 

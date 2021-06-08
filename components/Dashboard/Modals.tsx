@@ -52,9 +52,7 @@ export const AddModal: FC<Record<string, unknown>> = () => {
 		if (!initialSearch) {
 			searchPage = page + 1;
 		}
-		await fetch(
-			`http://localhost:3000/api/search?query=${searchValue}&page=${searchPage}`
-		)
+		await fetch(`/api/search?query=${searchValue}&page=${searchPage}`)
 			.then((response) => response.json())
 			.then((results) => {
 				if (initialSearch) {

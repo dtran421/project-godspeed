@@ -76,9 +76,7 @@ const SearchPage: FC<SearchPageProps> = ({
 
 	useEffect(() => {
 		const fetchSearchResults = async () => {
-			await fetch(
-				`http://localhost:3000/api/search?query=${query}&page=${page}`
-			)
+			await fetch(`/api/search?query=${query}&page=${page}`)
 				.then((response) => response.json())
 				.then((results) => {
 					updateSearchInfos(results.shoes);
@@ -161,10 +159,14 @@ const SearchPage: FC<SearchPageProps> = ({
 };
 
 export const getServerSideProps: GetServerSideProps = async ({
+	req,
 	query: { query }
 }) => {
+	const host = req.headers.host;
 	const response = await fetch(
-		`http://localhost:3000/api/search?query=${query}`
+		`${
+			host.indexOf("localhost") > -1 ? "http:" : "https:"
+		}//${host}/api/search?query=${query}`
 	);
 	const results = await response.json();
 
