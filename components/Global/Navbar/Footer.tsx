@@ -18,17 +18,41 @@ const Footer: FC<Record<string, never>> = () => {
 							<h1 className="lg:text-lg text-purple-500 font-semibold">
 								Navigation
 							</h1>
-							<FooterLink text={"News"} link="/news" />
-							<FooterLink text={"Drops"} link="/drops" />
-							<FooterLink text={"Dashboard"} link="/dashboard" />
+							<FooterLink
+								type={"internal"}
+								text={"News"}
+								link="/news"
+							/>
+							<FooterLink
+								type={"internal"}
+								text={"Drops"}
+								link="/drops"
+							/>
+							<FooterLink
+								type={"internal"}
+								text={"Dashboard"}
+								link="/dashboard"
+							/>
 						</div>
 						<div className="hidden lg:flex flex-col gap-y-2">
 							<h1 className="lg:text-lg text-purple-500 font-semibold">
 								Social Media
 							</h1>
-							<FooterLink text={"Instagram"} link="" />
-							<FooterLink text={"Twitter"} link="" />
-							<FooterLink text={"Facebook"} link="" />
+							<FooterLink
+								type={"external"}
+								text={"Instagram"}
+								link=""
+							/>
+							<FooterLink
+								type={"external"}
+								text={"Twitter"}
+								link=""
+							/>
+							<FooterLink
+								type={"external"}
+								text={"Facebook"}
+								link=""
+							/>
 						</div>
 					</div>
 					<div className="flex flex-col lg:hidden">
@@ -36,9 +60,21 @@ const Footer: FC<Record<string, never>> = () => {
 							<h1 className="lg:text-lg text-purple-500 font-semibold">
 								Social Media
 							</h1>
-							<FooterLink text={"Instagram"} link="" />
-							<FooterLink text={"Twitter"} link="" />
-							<FooterLink text={"Facebook"} link="" />
+							<FooterLink
+								type={"external"}
+								text={"Instagram"}
+								link=""
+							/>
+							<FooterLink
+								type={"external"}
+								text={"Twitter"}
+								link=""
+							/>
+							<FooterLink
+								type={"external"}
+								text={"Facebook"}
+								link=""
+							/>
 						</div>
 					</div>
 					<div className="col-span-2 lg:col-span-1 flex flex-col items-center mt-6 lg:mt-0">
@@ -99,15 +135,24 @@ const Footer: FC<Record<string, never>> = () => {
 };
 
 interface FooterLinkProps {
+	type: string;
 	text: string;
 	link: string;
 }
 
-const FooterLink: FC<FooterLinkProps> = ({ text, link }: FooterLinkProps) => {
-	return (
+const FooterLink: FC<FooterLinkProps> = ({
+	type,
+	text,
+	link
+}: FooterLinkProps) => {
+	return type === "internal" ? (
 		<Link href={link}>
-			<p className="text-sm md:text-md">{text}</p>
+			<p className="text-sm md:text-md cursor-pointer">{text}</p>
 		</Link>
+	) : (
+		<a href={link} target="_blank" rel="noreferrer">
+			<p className="text-sm md:text-md cursor-pointer">{text}</p>
+		</a>
 	);
 };
 

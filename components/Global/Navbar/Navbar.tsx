@@ -87,6 +87,10 @@ const Navbar: FC<NavbarProps> = ({ router, page, userStatus }: NavbarProps) => {
 			<Head>
 				<title>{page} | Godspeed</title>
 				<link rel="icon" type="image/png" href="/godspeed.png" />
+				<meta
+					name="description"
+					content="Godspeed is the future of shoe purchasing and reselling and tracking. Create watchlists to manage your inventory and shoes that you're trying to cop."
+				/>
 			</Head>
 			<div className="w-full relative lg:flex lg:justify-between bg-white dark:bg-gray-900 transition-colors duration-150 ease-in-out border-gray-50 dark:border-gray-700 border-b px-4 lg:px-6 xl:px-10">
 				<div className="w-full flex justify-between lg:justify-start py-3">
@@ -112,7 +116,6 @@ const Navbar: FC<NavbarProps> = ({ router, page, userStatus }: NavbarProps) => {
 						className="lg:hidden flex items-center focus:outline-none"
 						onClick={() => {
 							showMenu(!isMenuVisible);
-							toggleAccountMenu(!isAccountMenuVisible);
 						}}
 					>
 						{isMenuVisible ? (
@@ -217,7 +220,7 @@ const Navbar: FC<NavbarProps> = ({ router, page, userStatus }: NavbarProps) => {
 									)
 								) : (
 									<Link href="/login">
-										<p className="text-lg lg:text-xl font-medium cursor-pointer my-4">
+										<p className="text-lg lg:text-xl font-medium cursor-pointer">
 											Login
 										</p>
 									</Link>
