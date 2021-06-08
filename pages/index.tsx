@@ -1,6 +1,5 @@
 import React, { FC, useState, useEffect } from "react";
 import { GetStaticProps } from "next";
-import { withRouter, NextRouter } from "next/router";
 import PageVisibility from "react-page-visibility";
 import Twemoji from "react-twemoji";
 
@@ -17,7 +16,6 @@ import PopularNews from "../components/News/PopularNews";
 import HighlightPanel from "../components/Drops/HighlightPanel";
 import ShowcaseList from "../components/Index/ShowcaseList";
 interface IndexProps {
-	router: NextRouter;
 	sources: [
 		{
 			name: string;
@@ -27,9 +25,7 @@ interface IndexProps {
 	];
 }
 
-const Index: FC<IndexProps> = ({ router, sources }: IndexProps) => {
-	const [isMounted, setMounted] = useState(true);
-
+const Index: FC<IndexProps> = ({ sources }: IndexProps) => {
 	const [tickers, updateTickers] = useState([]);
 	const [pageIsVisible, setPageVisibility] = useState(true);
 	const handleVisibilityChange = (isVisible) => {
@@ -57,42 +53,38 @@ const Index: FC<IndexProps> = ({ router, sources }: IndexProps) => {
 		[isFetchingLists, hasFetchedLists, watchlists],
 		updateWatchlists
 	] = useState([true, false, []]);
-	const fetchWatchlists = (userUID: string) => {
-		db.collection("watchlists")
-			.doc(userUID)
-			.collection("lists")
-			.get()
-			.then((listDocs) => {
-				const fetchedWatchlists = [];
-				listDocs.forEach((listDoc) => {
-					fetchedWatchlists.push({
-						value: listDoc.id,
-						label: listDoc.id
-					});
-				});
-				updateWatchlists([false, true, fetchedWatchlists]);
-			})
-			.catch((error) => {
-				console.log("Error getting document:", error);
-			});
-	};
 	useEffect(() => {
-		setMounted(true);
+		const fetchWatchlists = (userUID: string) => {
+			db.collection("watchlists")
+				.doc(userUID)
+				.collection("lists")
+				.get()
+				.then((listDocs) => {
+					const fetchedWatchlists = [];
+					listDocs.forEach((listDoc) => {
+						fetchedWatchlists.push({
+							value: listDoc.id,
+							label: listDoc.id
+						});
+					});
+					updateWatchlists([false, true, fetchedWatchlists]);
+				})
+				.catch((error) => {
+					console.log("Error getting document:", error);
+				});
+		};
+
+		let isMounted = true;
 		firebase.auth().onAuthStateChanged((user) => {
 			if (user) {
 				if (isMounted) {
 					fetchWatchlists(user.uid);
 				}
-			} else {
-				router.push({
-					pathname: "/login",
-					query: { from: router.pathname }
-				});
 			}
 		});
 
 		return () => {
-			setMounted(false);
+			isMounted = false;
 		};
 	}, []);
 
@@ -163,14 +155,14 @@ const Index: FC<IndexProps> = ({ router, sources }: IndexProps) => {
 							)}
 						</PageVisibility>
 					</div>
-					<div className="max-w-6xl flex flex-col justify-center mx-auto mt-10">
-						<h1 className="flex items-center text-5xl font-bold mb-6">
+					<div className="lg:max-w-4xl xl:max-w-6xl flex flex-col justify-center px-6 lg:px-0 lg:mx-auto mt-10">
+						<h1 className="flex justify-center lg:justify-start items-center text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
 							Latest News
 						</h1>
 						<PopularNews sources={sources} />
 					</div>
-					<div className="max-w-6xl flex flex-col mx-auto my-16">
-						<h1 className="flex items-center text-5xl font-bold mb-6">
+					<div className="lg:max-w-4xl xl:max-w-6xl flex flex-col px-6 lg:px-0 lg:mx-auto my-16">
+						<h1 className="flex justify-center lg:justify-start items-center text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
 							Upcoming Drops
 						</h1>
 						<HighlightPanel top3List={top3List} />
@@ -181,7 +173,7 @@ const Index: FC<IndexProps> = ({ router, sources }: IndexProps) => {
 						emoji={
 							<Twemoji
 								options={{
-									className: "emoji w-7",
+									className: "emoji w-5 lg:w-7",
 									folder: "svg",
 									ext: ".svg"
 								}}
@@ -198,7 +190,7 @@ const Index: FC<IndexProps> = ({ router, sources }: IndexProps) => {
 						emoji={
 							<Twemoji
 								options={{
-									className: "emoji w-7",
+									className: "emoji w-5 lg:w-7",
 									folder: "svg",
 									ext: ".svg"
 								}}
@@ -215,7 +207,7 @@ const Index: FC<IndexProps> = ({ router, sources }: IndexProps) => {
 						emoji={
 							<Twemoji
 								options={{
-									className: "emoji w-6",
+									className: "emoji w-4 lg:w-6",
 									folder: "svg",
 									ext: ".svg"
 								}}
@@ -255,4 +247,4 @@ export const getStaticProps: GetStaticProps = async () => {
 	};
 };
 
-export default withRouter(Index);
+export default Index;

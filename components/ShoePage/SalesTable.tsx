@@ -31,7 +31,7 @@ const SalesTable: FC<SalesTableProps> = ({ salesData }: SalesTableProps) => {
 								<th
 									key={index}
 									{...column.getHeaderProps()}
-									className="text-left text-lg font-medium bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 p-3"
+									className="text-center lg:text-left text-lg font-medium bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 px-8 lg:px-3 py-2 lg:py-3"
 								>
 									{column.render("Header")}
 								</th>
@@ -58,7 +58,7 @@ const SalesTable: FC<SalesTableProps> = ({ salesData }: SalesTableProps) => {
 									<td
 										key={cellIndex}
 										{...cell.getCellProps()}
-										className="text-left text-lg p-3"
+										className="text-center lg:text-left text-lg p-3"
 									>
 										{cell.render("Cell")}
 									</td>

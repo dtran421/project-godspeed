@@ -9,12 +9,16 @@ module.exports = {
 	darkMode: "class", // or 'media' or 'class'
 	theme: {
 		extend: {
+			inset: {
+				17: "4.30rem",
+				18: "4.40rem",
+				19: "4.50rem"
+			},
 			minHeight: {
 				25: "25rem"
 			},
-			inset: {
-				18: "4.50rem",
-				19: "4.40rem"
+			width: {
+				22: "5.5rem"
 			}
 		}
 	},

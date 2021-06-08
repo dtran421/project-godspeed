@@ -102,7 +102,6 @@ export const fetchComplexSneakersPopular = (): Promise<unknown> => {
 				const glideSlides = $(".glide__slide");
 				const popularStories = glideSlides
 					.map((index, elem) => {
-						console.log($(elem).find("a").first().html());
 						const topStory = $(elem).find("a").first();
 						return {
 							headline: topStory.attr("title").trim(),

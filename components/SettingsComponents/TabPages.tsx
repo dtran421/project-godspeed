@@ -75,8 +75,6 @@ export const GeneralTab: FC<GeneralTabProps> = ({
 		});
 	};
 
-	console.log(userInfo.name);
-
 	return isFetching ? (
 		<div className="h-full flex justify-center items-center">
 			<MoonLoader color={theme === "dark" ? "#8B5CF6" : "#7C3AED"} />

@@ -11,12 +11,12 @@ interface ImageCellProps {
 	imageUrl: string;
 }
 
-export const imageCell: FC<ImageCellProps> = ({ imageUrl }: ImageCellProps) => {
-	return imageUrl === "" ? null : (
-		<div className="flex items-center justify-center bg-white mx-6 mt-1 rounded-xl">
-			<img width="80" src={imageUrl} className="py-2" />
+export const ImageCell: FC<ImageCellProps> = ({ imageUrl }: ImageCellProps) => {
+	return imageUrl ? (
+		<div className="flex justify-center items-center bg-white px-2 xl:mx-6 mt-1 rounded-xl">
+			<img width="80" src={imageUrl} className="w-24 py-2" />
 		</div>
-	);
+	) : null;
 };
 
 interface ProductCellProps {
@@ -26,7 +26,7 @@ interface ProductCellProps {
 	size: string;
 }
 
-export const productCell: FC<ProductCellProps> = ({
+export const ProductCell: FC<ProductCellProps> = ({
 	mode,
 	name,
 	ticker,
@@ -67,7 +67,7 @@ interface StatCellProps {
 	format: string;
 }
 
-export const statCell: FC<StatCellProps> = ({
+export const StatCell: FC<StatCellProps> = ({
 	stat,
 	format
 }: StatCellProps) => {
@@ -95,7 +95,7 @@ interface SpecialPriceCellProps {
 	latestChange: number;
 }
 
-export const specialPriceCell: FC<SpecialPriceCellProps> = ({
+export const SpecialPriceCell: FC<SpecialPriceCellProps> = ({
 	latestPrice,
 	latestChange
 }: SpecialPriceCellProps) => {
@@ -116,7 +116,7 @@ interface SpecialGainCellProps {
 	retailPrice: number;
 }
 
-export const specialGainCell: FC<SpecialGainCellProps> = ({
+export const SpecialGainCell: FC<SpecialGainCellProps> = ({
 	lastPrice,
 	retailPrice
 }: SpecialGainCellProps) => {
@@ -142,7 +142,7 @@ interface ActionCellProps {
 	deleteShoe: (shoeId: string, child: boolean, parent: string) => void;
 }
 
-export const actionCell: FC<ActionCellProps> = ({
+export const ActionCell: FC<ActionCellProps> = ({
 	child,
 	parent,
 	shoeId,
@@ -155,10 +155,10 @@ export const actionCell: FC<ActionCellProps> = ({
 	const menuItemClass =
 		"w-full text-left text-gray-600 dark:text-white font-medium rounded-md hover:text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-600 p-2 focus:outline-none";
 	return (
-		<div className="mt-2 mr-4">
+		<div className="relative mt-2">
 			<OutsideClick updateFunction={toggleDropdown}>
 				{child ? (
-					<>
+					<div className="flex justify-center">
 						<button
 							className="flex items-end rounded-lg p-1 text-red-600 dark:text-red-400 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-700 focus:outline-none"
 							onClick={() => toggleDropdown(!isDropdownVisible)}
@@ -166,7 +166,7 @@ export const actionCell: FC<ActionCellProps> = ({
 							<FiX size={20} className="opacity-80" />
 						</button>
 						{isDropdownVisible && (
-							<div className="absolute right-14 z-10 w-32 rounded-lg bg-white dark:bg-gray-900 shadow-lg">
+							<div className="absolute top-8 -right-4 z-10 w-32 rounded-lg bg-white dark:bg-gray-900 shadow-lg">
 								<div className="w-full flex flex-col items-center p-3">
 									<p className="text-center text-red-400 font-medium pb-2">
 										Are you sure?
@@ -182,9 +182,9 @@ export const actionCell: FC<ActionCellProps> = ({
 								</div>
 							</div>
 						)}
-					</>
+					</div>
 				) : (
-					<>
+					<div className="flex justify-center">
 						<button
 							className="flex items-end rounded-lg p-1 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none active:bg-gray-300"
 							onClick={() => toggleDropdown(!isDropdownVisible)}
@@ -192,7 +192,7 @@ export const actionCell: FC<ActionCellProps> = ({
 							<FiMoreVertical size={20} className="opacity-80" />
 						</button>
 						{isDropdownVisible && (
-							<div className="absolute right-12 z-10 w-44 rounded-lg bg-white dark:bg-gray-900 shadow-lg">
+							<div className="absolute top-8 -right-4 z-10 w-44 rounded-lg bg-white dark:bg-gray-900 shadow-lg">
 								<div className="w-full flex flex-col p-2">
 									<button
 										className={menuItemClass}
@@ -215,7 +215,7 @@ export const actionCell: FC<ActionCellProps> = ({
 								</div>
 							</div>
 						)}
-					</>
+					</div>
 				)}
 			</OutsideClick>
 		</div>
@@ -230,7 +230,7 @@ export const expanderHeader = ({
 	return (
 		<div
 			{...getToggleAllRowsExpandedProps()}
-			className="flex justify-center items-center mr-6"
+			className="flex justify-center items-center mx-4"
 		>
 			{isAllRowsExpanded ? (
 				<FiChevronUp size={24} />
@@ -246,7 +246,7 @@ export const expanderCell = ({ row }) => {
 	return row.canExpand ? (
 		<div
 			{...row.getToggleRowExpandedProps()}
-			className="flex justify-center items-center mr-6"
+			className="flex justify-center items-center mx-4"
 		>
 			{row.isExpanded ? (
 				<FiChevronUp size={24} />

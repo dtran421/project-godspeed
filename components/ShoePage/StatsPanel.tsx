@@ -1,5 +1,8 @@
 import React, { FC } from "react";
 import { BsCaretDownFill, BsCaretUpFill } from "react-icons/bs";
+import { useMediaQuery } from "react-responsive";
+
+import { lgScreenQuery } from "../Global/Configs/Breakpoints";
 
 export interface StatsObject {
 	condition: string;
@@ -42,6 +45,8 @@ const StatsPanel: FC<StatsPanelProps> = ({
 		high
 	}
 }: StatsPanelProps) => {
+	const lgScreen = useMediaQuery(lgScreenQuery);
+
 	return (
 		<div className="w-full flex flex-col items-center justify-center">
 			<div className="flex text-2xl font-medium">
@@ -61,7 +66,7 @@ const StatsPanel: FC<StatsPanelProps> = ({
 					{percentChange}%
 				</p>
 			</div>
-			<div className="grid grid-cols-2 gap-x-6 mt-3">
+			<div className="grid grid-cols-2 gap-x-6 mt-3 mb-8 lg:mb-0">
 				<div className="flex items-center justify-center">
 					<BsCaretDownFill
 						size={16}
@@ -97,7 +102,7 @@ const StatsPanel: FC<StatsPanelProps> = ({
 					${bid}
 				</a>
 			</div>
-			<div className="w-full grid grid-cols-2 gap-x-6 my-6 text-xl">
+			<div className="w-full grid grid-cols-1 md:grid-cols-2 gap-x-6 my-6 text-xl">
 				<RowCell position={"top"} label={"Colorway"} value={colorway} />
 				<RowCell
 					position={"top"}
@@ -140,7 +145,7 @@ const StatsPanel: FC<StatsPanelProps> = ({
 					value={`${Math.round(volatility * 10000) / 100}%`}
 				/>
 				<RowCell
-					position={"bottom"}
+					position={lgScreen ? "bottom" : "middle"}
 					label={"Annual Low"}
 					value={`$${low}`}
 				/>

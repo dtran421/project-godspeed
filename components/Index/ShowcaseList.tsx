@@ -6,9 +6,11 @@ import _ from "lodash";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { BsCircleFill } from "react-icons/bs";
+import { useMediaQuery } from "react-responsive";
 
 import { ShowcaseInfo } from "../../pages/api/StructureTypes";
 import ListCard from "./ListCard";
+import { lgScreenQuery } from "../Global/Configs/Breakpoints";
 
 const SkeletonTheme = dynamic(
 	() =>
@@ -17,6 +19,8 @@ const SkeletonTheme = dynamic(
 		ssr: false
 	}
 ) as FC<SkeletonThemeProps>;
+
+const MAX_CARDS_PER_PAGE = 4;
 
 interface ShowcaseListProps {
 	heading: string;
@@ -33,7 +37,7 @@ const ShowcaseList: FC<ShowcaseListProps> = ({
 	emojiClass,
 	list
 }: ShowcaseListProps) => {
-	const MAX_CARDS_PER_PAGE = 4;
+	const lgScreen = useMediaQuery(lgScreenQuery);
 
 	const { theme } = useTheme();
 
@@ -102,34 +106,39 @@ const ShowcaseList: FC<ShowcaseListProps> = ({
 	}, [isGridVisible]);
 
 	const pageButtonClass =
-		"z-10 w-12 h-12 flex items-center justify-center bg-white dark:bg-gray-900 shadow-md rounded-full text-2xl font-bold mr-3 focus:outline-none active:bg-gray-200 transition-colors duration-200 ease-in-out";
+		"w-10 lg:w-12 h-10 lg:h-12 z-10 flex items-center justify-center bg-white dark:bg-gray-900 shadow-md rounded-full font-bold focus:outline-none active:bg-gray-200 transition-colors duration-200 ease-in-out";
 	return (
-		<div className="max-w-6xl flex flex-col rounded-xl mx-auto">
-			<div className="p-6 ml-16">
-				<h1 className="flex items-center text-3xl font-bold">
-					{heading}
-					<span
-						className={`inline-flex justify-center align-center rounded-full ml-3 p-2 bg-opacity-50 ${emojiClass}`}
-					>
-						{emoji}
-					</span>
-				</h1>
-				<h2 className="text-xl font-medium text-gray-700 dark:text-gray-300">
-					{subheading}
-				</h2>
+		<div className="w-full lg:max-w-4xl xl:max-w-6xl flex flex-col rounded-xl mx-auto">
+			<div className="flex justify-center lg:justify-start px-14 lg:px-0 py-6 lg:ml-16">
+				<div className="flex flex-col justify-center lg:justify-start">
+					<h1 className="flex justify-center lg:justify-start items-center text-2xl lg:text-3xl font-bold">
+						{heading}
+						<span
+							className={`inline-flex justify-center align-center rounded-full ml-3 p-2 bg-opacity-50 ${emojiClass}`}
+						>
+							{emoji}
+						</span>
+					</h1>
+					<h2 className="lg:text-xl text-center lg:text-left font-medium text-gray-700 dark:text-gray-300">
+						{subheading}
+					</h2>
+				</div>
 			</div>
-			<div className="flex">
-				<div className="flex items-center">
+			<div className="flex mx-6 lg:mx-0">
+				<div className="flex items-center mr-3">
 					<button
 						className={`${
 							!(page > 0) && "invisible"
 						} ${pageButtonClass}`}
 						onClick={() => paginate(-1)}
 					>
-						<FiChevronLeft className="text-purple-600 dark:text-purple-400" />
+						<FiChevronLeft
+							size={lgScreen ? 24 : 20}
+							className="text-purple-600 dark:text-purple-400"
+						/>
 					</button>
 				</div>
-				<div className="flex min-h-25">
+				<div className="w-full overflow-auto xl:overflow-hidden lg:flex min-h-25">
 					<SkeletonTheme
 						color={theme === "dark" ? "#4B5563" : "#E5E7EB"}
 						highlightColor={
@@ -138,7 +147,7 @@ const ShowcaseList: FC<ShowcaseListProps> = ({
 					>
 						<AnimatePresence>
 							<motion.div
-								className="grid grid-cols-4"
+								className="w-full h-full flex xl:grid xl:grid-cols-4 lg:gap-x-4"
 								variants={gridVariants}
 								initial="hidden"
 								animate={isGridVisible ? "visible" : "hidden"}
@@ -190,7 +199,7 @@ const ShowcaseList: FC<ShowcaseListProps> = ({
 						</AnimatePresence>
 					</SkeletonTheme>
 				</div>
-				<div className="flex items-center">
+				<div className="flex items-center ml-3">
 					<button
 						className={`${
 							!(
@@ -200,11 +209,14 @@ const ShowcaseList: FC<ShowcaseListProps> = ({
 						} ${pageButtonClass}`}
 						onClick={() => paginate(1)}
 					>
-						<FiChevronRight className="text-purple-600 dark:text-purple-400" />
+						<FiChevronRight
+							size={lgScreen ? 24 : 20}
+							className="text-purple-600 dark:text-purple-400"
+						/>
 					</button>
 				</div>
 			</div>
-			<div className="flex justify-center m-6">
+			<div className="flex justify-center m-2 mb-6 lg:m-6">
 				{pageIndicators.map((indicator) => {
 					return indicator;
 				})}

@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from "react";
+import React, { FC, useEffect } from "react";
 import { NextRouter, withRouter } from "next/router";
 
 import { firebase } from "./_app";
@@ -10,10 +10,8 @@ interface LoginProps {
 }
 
 const Login: FC<LoginProps> = ({ router }: LoginProps) => {
-	const [isMounted, setMounted] = useState(false);
-
 	useEffect(() => {
-		setMounted(true);
+		let isMounted = true;
 		firebase.auth().onAuthStateChanged((user) => {
 			if (user) {
 				if (isMounted) {
@@ -27,21 +25,21 @@ const Login: FC<LoginProps> = ({ router }: LoginProps) => {
 		});
 
 		return () => {
-			setMounted(false);
+			isMounted = false;
 		};
-	}, []);
+	}, [router]);
 
-	return isMounted ? (
+	return (
 		<UserLayout page={"Login"} userStatus={false}>
 			<div className="w-full h-screen -mt-16">
 				<div className="h-full flex justify-center items-center">
-					<div className="w-1/4 flex flex-col justify-center items-center max-w-lg bg-white dark:bg-gray-900 rounded-lg shadow-lg">
+					<div className="w-3/4 md:w-2/5 lg:w-1/3 xl:w-1/4 flex justify-center items-center bg-white dark:bg-gray-900 rounded-lg shadow-lg">
 						<LoginForm />
 					</div>
 				</div>
 			</div>
 		</UserLayout>
-	) : null;
+	);
 };
 
 export default withRouter(Login);

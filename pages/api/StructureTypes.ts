@@ -1,3 +1,6 @@
+import { Dispatch, SetStateAction } from "react";
+
+/* General shoe info (dashboard) */
 export interface CardInfo {
 	name: string;
 	urlKey: string;
@@ -24,10 +27,16 @@ export interface CardInfo {
 	sales: number;
 }
 
+export interface WatchlistData {
+	shoes: Record<string, ShoeChild[]>;
+	created: Date;
+}
+
 export interface ShoeInfos {
 	[urlKey: string]: CardInfo;
 }
 
+/* Shoe child info */
 export interface ChildInfo {
 	uuid: string;
 	shoeSize: string;
@@ -53,6 +62,12 @@ export interface ChildInfos {
 	[uuid: string]: ChildInfo;
 }
 
+export interface ShoeChild {
+	size: string;
+	uuid: string;
+}
+
+/* Release info (index, drops) */
 export interface ReleaseInfo {
 	urlKey: string;
 	uuid: string;
@@ -67,6 +82,7 @@ export interface ReleaseInfo {
 	};
 }
 
+/* Misc types for index */
 export interface TickerInfo {
 	urlKey: string;
 	ticker: string;
@@ -83,16 +99,12 @@ export interface ShowcaseInfo {
 	latestChange: number;
 }
 
-export interface ShoeChild {
-	size: string;
-	uuid: string;
-}
-
 export interface AddShoe {
 	shoe: string;
 	children: ShoeChild[];
 }
 
+/* Shoe page info */
 export interface ShoeDetails {
 	name: string;
 	urlKey: string;
@@ -122,6 +134,7 @@ export interface ShoeDetails {
 	sales: number;
 }
 
+/* News story info (news) */
 export interface PopularStoryInfo {
 	headline: string;
 	link: string;
@@ -135,6 +148,7 @@ export interface StoryInfo {
 	imageUrl: string;
 }
 
+/* Search info (search) */
 export interface SearchInfo {
 	urlKey: string;
 	uuid: string;
@@ -144,12 +158,22 @@ export interface SearchInfo {
 	latestPrice: number;
 }
 
-export interface WatchlistData {
-	shoes: Record<string, ShoeChild[]>;
-	created: Date;
-}
-
+/* User info (settings) */
 export interface UserInfo {
 	name: string;
 	email: string;
+}
+
+/* Modal types */
+export interface ModalContextObject {
+	watchlistsContext: [
+		boolean,
+		boolean,
+		{ value: string; label: string }[],
+		Dispatch<
+			SetStateAction<
+				[boolean, boolean, { value: string; label: string }[]]
+			>
+		>
+	];
 }

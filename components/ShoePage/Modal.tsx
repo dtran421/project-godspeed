@@ -8,26 +8,24 @@ import React, {
 } from "react";
 import { NextRouter, withRouter } from "next/router";
 import { useTheme } from "next-themes";
-import Popup from "reactjs-popup";
-import { FiX, FiPlusCircle } from "react-icons/fi";
-import Select from "react-select";
-import CreatableSelect from "react-select/creatable";
 import makeAnimated from "react-select/animated";
+import CreatableSelect from "react-select/creatable";
+import Popup from "reactjs-popup";
+import { FiX, FiPlus } from "react-icons/fi";
 import MoonLoader from "react-spinners/MoonLoader";
+import { useMediaQuery } from "react-responsive";
 
-import selectStyles from "./Configs/SelectConfig";
 import { firebase, db } from "../../pages/_app";
-import {
-	ChildInfo,
-	ShoeChild,
-	ModalContextObject
-} from "../../pages/api/StructureTypes";
-import Skeleton from "react-loading-skeleton";
+import { ModalContextObject, ShoeChild } from "../../pages/api/StructureTypes";
+import selectStyles from "../Global/Configs/SelectConfig";
+import { lgScreenQuery } from "../../components/Global/Configs/Breakpoints";
+
+export const ModalContext = createContext({} as ModalContextObject);
 
 const saveShoeToList = async (
 	uid: string,
 	urlKey: string,
-	selectedSizes: string[],
+	shoeChild: ShoeChild,
 	selectedLists: Record<string, string>[]
 ) => {
 	selectedLists.map(({ value: listName }) => {
@@ -38,16 +36,18 @@ const saveShoeToList = async (
 			.doc(listName);
 		watchlistRef
 			.get()
-			.then((doc) => {
-				let newSizes;
-				if (doc.exists) {
-					const shoesDict = doc.data().shoes;
-					if (shoesDict[urlKey]) {
-						newSizes = Array.from(
-							new Set([...shoesDict[urlKey], ...selectedSizes])
-						);
-					} else {
-						newSizes = selectedSizes;
+			.then((listDoc) => {
+				let newSizes = [];
+				if (listDoc && listDoc.exists) {
+					const shoes = listDoc.data().shoes;
+					if (shoeChild.size) {
+						if (urlKey in shoes) {
+							newSizes = Array.from(
+								new Set([...shoes[urlKey], shoeChild])
+							);
+						} else {
+							newSizes = [shoeChild];
+						}
 					}
 					watchlistRef
 						.update({ shoes: { [urlKey]: newSizes } })
@@ -58,7 +58,9 @@ const saveShoeToList = async (
 							console.error("Error writing document: ", error);
 						});
 				} else {
-					newSizes = selectedSizes;
+					if (shoeChild.size) {
+						newSizes = [shoeChild];
+					}
 					watchlistRef
 						.set({
 							shoes: { [urlKey]: newSizes },
@@ -78,25 +80,23 @@ const saveShoeToList = async (
 	});
 };
 
-export const ModalContext = createContext({} as ModalContextObject);
-
 interface ModalProps {
 	router: NextRouter;
 	name: string;
-	uuid: string;
 	urlKey: string;
 	imageUrl: string;
-	type: string;
+	shoeChild: ShoeChild;
 }
 
 const Modal: FC<ModalProps> = ({
 	router,
 	name,
-	uuid,
 	urlKey,
 	imageUrl,
-	type
+	shoeChild
 }: ModalProps) => {
+	const lgScreen = useMediaQuery(lgScreenQuery);
+
 	const { theme } = useTheme();
 	const animatedSelectComponents = makeAnimated();
 
@@ -131,29 +131,6 @@ const Modal: FC<ModalProps> = ({
 			});
 	};
 
-	const [[isFetchingChildren, shoeChildren], updateShoeChildren] = useState([
-		true,
-		[]
-	]);
-	const fetchShoeSizes = async (uuid) => {
-		await fetch(`/api/fetchSizes/${uuid}`)
-			.then((response) => response.json())
-			.then((childrenData: ChildInfo[]) => {
-				updateShoeChildren([
-					false,
-					childrenData.map(
-						({ uuid, shoeSize: size, latestPrice: { last } }) => {
-							return {
-								value: { uuid, size } as ShoeChild,
-								label: size,
-								lastPrice: last
-							};
-						}
-					)
-				]);
-			});
-	};
-
 	const checkLoggedIn = () => {
 		firebase.auth().onAuthStateChanged((user) => {
 			if (user) {
@@ -161,7 +138,6 @@ const Modal: FC<ModalProps> = ({
 				if (!hasFetchedLists) {
 					fetchWatchlists(user.uid);
 				}
-				fetchShoeSizes(uuid);
 			} else {
 				router.push({
 					pathname: "/login",
@@ -171,13 +147,12 @@ const Modal: FC<ModalProps> = ({
 		});
 	};
 
-	const [selectedSizes, setSizes] = useState([]);
 	const [selectedLists, setLists] = useState([]);
 	const [isSubmitting, setSubmitting] = useState(false);
 	const onSave = () => {
-		firebase.auth().onAuthStateChanged(async (user) => {
+		firebase.auth().onAuthStateChanged((user) => {
 			if (user) {
-				saveShoeToList(user.uid, urlKey, selectedSizes, selectedLists);
+				saveShoeToList(user.uid, urlKey, shoeChild, selectedLists);
 				updateWatchlists([
 					false,
 					true,
@@ -211,60 +186,17 @@ const Modal: FC<ModalProps> = ({
 		}
 	};
 
-	let button;
-	switch (type) {
-		case "highlight":
-			button = (
-				<div className="h-full flex items-end md:ml-4">
-					{!(uuid && urlKey) ? (
-						<Skeleton width={100} height={25} />
-					) : (
-						<button
-							className="lg:text-lg font-semibold rounded-xl text-purple-600 dark:text-purple-400 border-2 border-purple-500 focus:outline-none hover:bg-purple-500 hover:text-white dark:hover:text-white px-3 py-1 mt-4 md:mt-0"
-							onClick={() => checkLoggedIn()}
-						>
-							Track this Shoe
-						</button>
-					)}
-				</div>
-			);
-			break;
-		case "showcase":
-			button = !(uuid && urlKey) ? (
-				<button
-					className="absolute -top-6 -right-4 text-lg text-purple-500 font-semibold p-2 focus:outline-none"
-					disabled={true}
-				>
-					<Skeleton circle={true} width={24} height={24} />
-				</button>
-			) : (
-				<button
-					className="absolute -top-6 -right-4 text-lg text-purple-500 font-semibold p-2 focus:outline-none"
-					onClick={() => checkLoggedIn()}
-				>
-					<FiPlusCircle size={26} />
-				</button>
-			);
-			break;
-		default:
-			button = (
-				<button
-					className="absolute -top-5 -right-5 text-lg text-purple-500 font-semibold p-2 focus:outline-none"
-					onClick={() => checkLoggedIn()}
-				>
-					{!(uuid && urlKey) ? (
-						<Skeleton />
-					) : (
-						<FiPlusCircle size={28} />
-					)}
-				</button>
-			);
-			break;
-	}
-
 	return (
 		<>
-			{button}
+			<button
+				className="flex items-center lg:text-lg font-medium rounded-full border-2 border-purple-600 focus:outline-none px-3 lg:px-4 lg:mr-6"
+				onClick={() => checkLoggedIn()}
+			>
+				<span className="h-full rounded-full mr-1 lg:mr-2">
+					<FiPlus size={lgScreen ? 22 : 20} />
+				</span>
+				<span className="py-2">Add to Watchlist</span>
+			</button>
 			<Popup
 				open={open}
 				closeOnDocumentClick
@@ -273,7 +205,7 @@ const Modal: FC<ModalProps> = ({
 				<div className="w-screen h-screen flex justify-center items-center bg-opacity-70 bg-gray-700">
 					<div
 						ref={modalRef}
-						className="flex flex-col w-3/4 xl:w-1/2 bg-white dark:bg-gray-900 rounded-xl"
+						className="flex flex-col w-3/4 md:w-2/3 lg:w-1/2 bg-white dark:bg-gray-900 rounded-xl"
 					>
 						<div className="flex justify-end">
 							<button
@@ -283,11 +215,14 @@ const Modal: FC<ModalProps> = ({
 								<FiX size={28} />
 							</button>
 						</div>
-						<div className="flex flex-col items-center px-6 pb-6">
-							<h1 className="text-lg lg:text-3xl text-center font-medium">
+						<div className="flex flex-col items-center px-6 pb-2 lg:pb-6">
+							<h1 className="text-xl md:text-2xl lg:text-3xl text-center font-medium">
 								{name}
 							</h1>
-							<div className="bg-white rounded-xl p-2 mt-4 mb-10 lg:m-4">
+							<h2 className="text-lg md:text-xl lg:text-2xl font-medium text-gray-700 dark:text-gray-300 mt-1 lg:mt-2">
+								{shoeChild.size ? `Size ${shoeChild.size}` : ""}
+							</h2>
+							<div className="bg-white rounded-xl p-2 my-4 lg:my-8">
 								<img
 									width="250"
 									height="250"
@@ -295,35 +230,7 @@ const Modal: FC<ModalProps> = ({
 									className="rounded-lg"
 								/>
 							</div>
-							<div className="w-full flex flex-col lg:flex-row grid-cols-2 gap-x-4 gap-y-4 border-b-2 border-gray-300 dark:border-gray-700 pb-6">
-								<Select
-									closeMenuOnSelect={false}
-									isLoading={isFetchingChildren}
-									isSearchable={false}
-									components={animatedSelectComponents}
-									placeholder={"Select a size..."}
-									noOptionsMessage={() => "No shoes found."}
-									getOptionLabel={(option) =>
-										`${option.label} — ${
-											parseInt(option.lastPrice) > 0
-												? `$${option.lastPrice}`
-												: "Not reported"
-										}`
-									}
-									getOptionValue={(option) =>
-										`${option.label}`
-									}
-									isMulti
-									options={shoeChildren}
-									styles={selectStyles(theme)}
-									className="w-full"
-									onChange={(selectedOptions) => {
-										selectedOptions = selectedOptions.map(
-											(option) => option.value
-										);
-										setSizes(selectedOptions);
-									}}
-								/>
+							<div className="flex w-full lg:w-3/4 grid-cols-2 gap-x-4 border-b-2 border-gray-300 dark:border-gray-700 pb-6">
 								<CreatableSelect
 									closeMenuOnSelect={false}
 									isLoading={isFetchingLists}
@@ -348,9 +255,8 @@ const Modal: FC<ModalProps> = ({
 							) : (
 								<>
 									<button
-										className="lg:text-lg text-white rounded-lg bg-purple-500 focus:outline-none disabled:bg-purple-800 disabled:text-gray-300 px-16 py-2 mt-6 "
+										className="rounded-lg bg-purple-600 text-white text-lg px-16 py-2 mt-6 focus:outline-none disabled:bg-purple-800 disabled:text-gray-300 disabled:cursor-not-allowed"
 										disabled={
-											selectedSizes.length == 0 ||
 											selectedLists.length == 0 ||
 											isSubmitting
 										}

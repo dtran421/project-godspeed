@@ -12,7 +12,7 @@ const useOutsideListener = (ref, updateFunction) => {
 		return () => {
 			document.removeEventListener("mousedown", handleClickOutside);
 		};
-	}, [ref]);
+	}, [ref, updateFunction]);
 };
 
 interface OutsideClickProps {

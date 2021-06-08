@@ -44,7 +44,7 @@ const Dropdown: FC<DropdownProps> = ({ router }: DropdownProps) => {
 	};
 
 	const dropdownLinkClass =
-		"w-full flex items-center text-left font-medium p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-700 hover:text-purple-600 dark:hover:text-purple-100 focus:outline-none active:bg-purple-200";
+		"w-full flex items-center text-left font-medium p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-700 hover:text-purple-600 dark:hover:text-purple-100 focus:outline-none";
 	return (
 		<motion.div
 			className="h-full flex flex-col justify-center"
@@ -63,7 +63,7 @@ const Dropdown: FC<DropdownProps> = ({ router }: DropdownProps) => {
 						animate="visible"
 						exit="hidden"
 						variants={dropdownVariants}
-						className="absolute z-40 top-18 right-8 w-52 flex flex-col items-center bg-white dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700 shadow-lg p-2"
+						className="absolute z-40 top-19 right-8 w-52 flex flex-col items-center bg-white dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700 shadow-lg p-2"
 					>
 						<button
 							className={dropdownLinkClass}

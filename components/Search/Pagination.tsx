@@ -1,4 +1,5 @@
 import React, { FC, useContext } from "react";
+import _ from "lodash";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 
 import { PaginationContext } from "../../pages/search";
@@ -18,13 +19,20 @@ const Pagination: FC<PaginationProps> = ({ pages }: PaginationProps) => {
 	};
 
 	let buttons;
-	if (page < 4) {
+	if (pages <= 5) {
 		buttons = (
 			<>
-				<PageButton currPage={1} />
-				<PageButton currPage={2} />
-				<PageButton currPage={3} />
-				<PageButton currPage={4} />
+				{_.times(pages, (index) => (
+					<PageButton key={index} currPage={index + 1} />
+				))}
+			</>
+		);
+	} else if (page < 4) {
+		buttons = (
+			<>
+				{_.times(4, (index) => (
+					<PageButton key={index} currPage={index + 1} />
+				))}
 				{pages > 5 && <p className="text-lg">...</p>}
 				<PageButton currPage={pages} />
 			</>
@@ -34,10 +42,12 @@ const Pagination: FC<PaginationProps> = ({ pages }: PaginationProps) => {
 			<>
 				<PageButton currPage={1} />
 				{pages > 5 && <p className="text-lg">...</p>}
-				<PageButton currPage={pages - 3} />
-				<PageButton currPage={pages - 2} />
-				<PageButton currPage={pages - 1} />
-				<PageButton currPage={pages} />
+				{_.times(4, (index) => (
+					<PageButton
+						key={pages - (4 - index - 1)}
+						currPage={pages - (4 - index - 1)}
+					/>
+				))}
 			</>
 		);
 	} else {
@@ -56,20 +66,22 @@ const Pagination: FC<PaginationProps> = ({ pages }: PaginationProps) => {
 	}
 
 	return (
-		<div className="flex justify-center items-center gap-x-3 mt-10">
-			<button className={buttonClass} disabled={page === 1}>
-				<BsChevronLeft
-					{...arrowProps}
-					onClick={() => updatePage(page - 1)}
-				/>
-			</button>
-			{buttons}
-			<button className={buttonClass} disabled={page === pages}>
-				<BsChevronRight
-					{...arrowProps}
-					onClick={() => updatePage(page + 1)}
-				/>
-			</button>
+		<div className="w-full">
+			<div className="flex justify-center items-center gap-x-3 px-8 lg:px-0 mt-10">
+				<button className={buttonClass} disabled={page === 1}>
+					<BsChevronLeft
+						{...arrowProps}
+						onClick={() => updatePage(page - 1)}
+					/>
+				</button>
+				{buttons}
+				<button className={buttonClass} disabled={page === pages}>
+					<BsChevronRight
+						{...arrowProps}
+						onClick={() => updatePage(page + 1)}
+					/>
+				</button>
+			</div>
 		</div>
 	);
 };
@@ -84,7 +96,7 @@ const PageButton: FC<PageButtonProps> = ({ currPage }: PageButtonProps) => {
 		<button
 			className={`w-12 text-lg font-semibold ${
 				currPage === page ? "bg-purple-600" : "bg-gray-700"
-			} rounded-xl py-1 focus:outline-none`}
+			} rounded-xl px-1 lg:px-0 py-1 focus:outline-none`}
 			onClick={() => updatePage(currPage)}
 		>
 			{currPage}

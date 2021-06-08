@@ -2,6 +2,9 @@ import React, { FC, useState } from "react";
 import Ticker from "react-ticker";
 import Link from "next/link";
 import { BsCaretUpFill, BsCaretDownFill } from "react-icons/bs";
+import { useMediaQuery } from "react-responsive";
+
+import { lgScreenQuery } from "../Global/Configs/Breakpoints";
 
 interface TickerBannerProps {
 	tickers: Record<string, string | number>[];
@@ -10,6 +13,8 @@ interface TickerBannerProps {
 const TickerBanner: FC<TickerBannerProps> = ({
 	tickers
 }: TickerBannerProps) => {
+	const lgScreen = useMediaQuery(lgScreenQuery);
+
 	const [speed, setSpeed] = useState(4);
 
 	if (!tickers.length) return null;
@@ -29,7 +34,7 @@ const TickerBanner: FC<TickerBannerProps> = ({
 						index % tickers.length
 					];
 					const iconProps = {
-						size: 18,
+						size: lgScreen ? 18 : 16,
 						className: `mx-1 ${
 							latestChange >= 0
 								? "text-green-400 dark:text-green-600"
@@ -39,8 +44,8 @@ const TickerBanner: FC<TickerBannerProps> = ({
 					return (
 						<div className="mx-8 my-3">
 							<Link href={`/shoe/${urlKey}`}>
-								<div className="flex justify-center items-center cursor-pointer">
-									<h1 className="text-xl text-white font-semibold mr-2">
+								<div className="flex justify-center items-center text-lg xl:text-xl cursor-pointer">
+									<h1 className=" text-white font-semibold mr-2">
 										{ticker}
 									</h1>
 									{latestChange >= 0 ? (
@@ -49,11 +54,11 @@ const TickerBanner: FC<TickerBannerProps> = ({
 										<BsCaretDownFill {...iconProps} />
 									)}{" "}
 									<h1
-										className={`text-xl align-middle ${
+										className={
 											latestChange >= 0
 												? "text-green-400 dark:text-green-600"
 												: "text-red-500 dark:text-red-600"
-										}`}
+										}
 									>
 										{latestChange}%
 									</h1>

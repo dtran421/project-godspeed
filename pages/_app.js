@@ -18,7 +18,8 @@ export const headersConfig = {
 		accept: "*/*",
 		"sec-fetch-site": "cross-site",
 		"sec-fetch-mode": "cors",
-		"accept-language": "en-US"
+		"accept-language": "en-US",
+		"same-site": "strict"
 	}
 };
 

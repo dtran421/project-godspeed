@@ -1,14 +1,10 @@
 import * as Yup from "yup";
 
 export const LoginSchema = Yup.object().shape({
-	email: Yup.string().email("Invalid email").required("Email required"),
-	password: Yup.string()
-		.required("Please provide a password")
-		.min(8, "Password must contain at least 8 characters")
-		.matches(
-			/^.*(?=.*\d)((?=.*[a-z]){1})((?=.*[A-Z]){1}).*$/,
-			"Password must contain at least one uppercase and one number"
-		)
+	email: Yup.string()
+		.email("Invalid email")
+		.required("Please provide an email"),
+	password: Yup.string().required("Please provide a password")
 });
 
 export const RegisterSchema = Yup.object().shape({

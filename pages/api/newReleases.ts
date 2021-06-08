@@ -1,23 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import cacheData from "memory-cache";
 
+import { headersConfig } from "../_app";
 import { ReleaseInfo } from "./StructureTypes";
-
-// Initializing the cors middleware
-const headersConfig = {
-	headers: {
-		"Content-Type": "application/json",
-		"user-agent":
-			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36",
-		"sec-fetch-dest": "none",
-		accept: "*/*",
-		"sec-fetch-site": "cross-site",
-		"sec-fetch-mode": "cors",
-		"accept-language": "en-US"
-	}
-};
-
-export const MAX_SHOES_PER_LINE = 4;
 
 const makeFetchRequest = async (
 	time: number,

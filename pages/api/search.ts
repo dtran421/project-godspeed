@@ -1,18 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-// Initializing the cors middleware
-const headersConfig = {
-	headers: {
-		"Content-Type": "application/json",
-		"user-agent":
-			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36",
-		"sec-fetch-dest": "none",
-		accept: "*/*",
-		"sec-fetch-site": "cross-site",
-		"sec-fetch-mode": "cors",
-		"accept-language": "en-US"
-	}
-};
+import { headersConfig } from "../_app";
 
 export const MAX_SHOES_PER_LINE = 4;
 
@@ -86,7 +74,7 @@ const options = {
 	})
 };
 
-const test = async () => {
+/* const test = async () => {
 	fetch(
 		"https://xw7sbct9v6-dsn.algolia.net/1/indexes/products/query?x-algolia-agent=Algolia%20for%20JavaScript%20(4.9.1)%3B%20Browser",
 		options
@@ -95,13 +83,12 @@ const test = async () => {
 		.then((results) => {
 			console.log(results);
 		});
-};
+}; */
 
 const handler = async (
 	req: NextApiRequest,
 	res: NextApiResponse
 ): Promise<void> => {
-	test();
 	const results = await searchRequest(
 		req.query.query as string,
 		req.query.page as string

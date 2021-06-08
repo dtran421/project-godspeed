@@ -54,7 +54,7 @@ const LoginForm: FC<LoginFormProps> = ({ router }: LoginFormProps) => {
 	});
 
 	const [mode, setMode] = useState("login");
-	const [loginError, updateError] = useState({});
+	const [loginError, updateError] = useState({ message: "" });
 	const [showPassword, togglePassword] = useState(false);
 
 	const loginCredentials = ({ email, password }, setSubmitting) => {
@@ -86,7 +86,6 @@ const LoginForm: FC<LoginFormProps> = ({ router }: LoginFormProps) => {
 			.createUserWithEmailAndPassword(values.email, values.password)
 			.then((userCredential) => {
 				const user = userCredential.user;
-				console.log(user);
 			})
 			.catch((error) => {
 				const errorCode = error.code;
@@ -104,9 +103,9 @@ const LoginForm: FC<LoginFormProps> = ({ router }: LoginFormProps) => {
 	};
 
 	const inputClass =
-		"w-full p-2 bg-blue-50 dark:bg-gray-800 dark:border-2 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-40";
+		"w-full bg-blue-50 dark:bg-gray-800 dark:border-2 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-40 p-1 lg:p-2";
 	const socialButtonClass =
-		"w-full flex items-center justify-center rounded-full shadow-lg text-gray-800 font-medium bg-white border border-gray-300 dark:border-gray-700 focus:outline-none px-6 py-2 my-2";
+		"w-full flex items-center justify-center text-sm md:text-md font-medium rounded-full shadow-lg text-gray-800 bg-white border border-gray-300 dark:border-gray-700 focus:outline-none px-4 lg:px-6 py-2 my-2";
 	return (
 		<Formik
 			initialValues={intialValues}
@@ -117,7 +116,14 @@ const LoginForm: FC<LoginFormProps> = ({ router }: LoginFormProps) => {
 					: registerCredentials(values, setSubmitting);
 			}}
 		>
-			{({ values, errors, touched, resetForm, isSubmitting }) => {
+			{({
+				values,
+				errors,
+				touched,
+				resetForm,
+				handleChange,
+				isSubmitting
+			}) => {
 				return (
 					<Form className="w-full flex flex-col justify-center items-center px-3">
 						{mode === "register" && (
@@ -125,7 +131,7 @@ const LoginForm: FC<LoginFormProps> = ({ router }: LoginFormProps) => {
 								<p
 									className="flex items-center text-blue-500 cursor-pointer"
 									onClick={() => {
-										updateError({});
+										updateError({ message: "" });
 										resetForm();
 										setMode("login");
 									}}
@@ -136,16 +142,16 @@ const LoginForm: FC<LoginFormProps> = ({ router }: LoginFormProps) => {
 							</div>
 						)}
 						<h1
-							className={`text-2xl text-center font-bold px-8 ${
+							className={`text-xl lg:text-2xl text-center font-bold px-8 ${
 								mode === "login" ? "pt-8" : ""
-							} pb-4`}
+							} pb-2 lg:pb-4`}
 						>
 							{mode === "login" ? "Login" : "Register"}
 						</h1>
-						<div className="flex flex-col w-full justify-center px-6 pb-4 mx-10">
+						<div className="flex flex-col w-full justify-center px-6 pb-2 lg:pb-4 mx-10">
 							<Error
 								errors={
-									"message" in loginError || mode === "login"
+									mode === "login" || loginError.message
 										? loginError
 										: errors
 								}
@@ -156,21 +162,27 @@ const LoginForm: FC<LoginFormProps> = ({ router }: LoginFormProps) => {
 								name="email"
 								type="email"
 								className={inputClass}
+								onChange={(e) => {
+									handleChange(e);
+									updateError({ message: "" });
+								}}
 							/>
-
 							<InputHeader headerText={"Password"} />
 							<div className="relative w-full">
 								<Field
 									name="password"
 									type={showPassword ? "text" : "password"}
 									className={`w-full ${inputClass}`}
+									onChange={(e) => {
+										handleChange(e);
+										updateError({ message: "" });
+									}}
 								/>
 								<PasswordToggle
 									showPassword={showPassword}
 									togglePassword={togglePassword}
 								/>
 							</div>
-
 							{mode === "register" && (
 								<>
 									<InputHeader
@@ -193,10 +205,9 @@ const LoginForm: FC<LoginFormProps> = ({ router }: LoginFormProps) => {
 									</div>
 								</>
 							)}
-
 							<button
 								type="submit"
-								className="block text-white text-center text-xl bg-purple-500 rounded-lg mt-8 mb-4 p-2 focus:outline-none active:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+								className="block text-lg lg:text-xl text-center text-white bg-purple-500 rounded-lg focus:outline-none active:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed p-2 mt-6 lg:mt-8 mb-4"
 								disabled={
 									!(
 										mode === "login" ||
@@ -211,7 +222,7 @@ const LoginForm: FC<LoginFormProps> = ({ router }: LoginFormProps) => {
 							</button>
 						</div>
 						{mode === "login" && (
-							<div className="w-4/5 flex flex-col items-center border-t border-black dark:border-white p-4">
+							<div className="w-4/5 flex flex-col items-center border-t border-black dark:border-white p-2 lg:p-4">
 								<button
 									type="button"
 									className={socialButtonClass}
@@ -224,7 +235,7 @@ const LoginForm: FC<LoginFormProps> = ({ router }: LoginFormProps) => {
 										className="ml-2"
 									/>
 								</button>
-								<button
+								{/* <button
 									type="button"
 									className={socialButtonClass}
 								>
@@ -245,11 +256,11 @@ const LoginForm: FC<LoginFormProps> = ({ router }: LoginFormProps) => {
 										width={20}
 										className="ml-2"
 									/>
-								</button>
+								</button> */}
 								<span
 									className="text-blue-500 cursor-pointer my-2"
 									onClick={() => {
-										updateError({});
+										updateError({ message: "" });
 										resetForm();
 										setMode("register");
 									}}
@@ -270,7 +281,7 @@ export interface HeaderProps {
 }
 
 const InputHeader: FC<HeaderProps> = ({ headerText }: HeaderProps) => {
-	return <p className="text-xl mt-4 mb-1">{headerText}</p>;
+	return <p className="text-lg lg:text-xl mt-2 lg:mt-4 mb-1">{headerText}</p>;
 };
 
 interface ErrorProps {

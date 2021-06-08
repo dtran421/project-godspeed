@@ -22,14 +22,12 @@ interface SettingsProps {
 }
 
 const Settings: FC<SettingsProps> = ({ router }: SettingsProps) => {
-	const [isMounted, setMounted] = useState(true);
-
 	const [activeTab, setActiveTab] = useState(0);
 	const [[isFetching, userInfo], updateUserInfo] = useState<
 		[boolean, UserInfo]
 	>([true, {} as UserInfo]);
 	useEffect(() => {
-		setMounted(true);
+		let isMounted = true;
 		firebase.auth().onAuthStateChanged((user) => {
 			if (isMounted) {
 				if (user) {
@@ -45,9 +43,9 @@ const Settings: FC<SettingsProps> = ({ router }: SettingsProps) => {
 		});
 
 		return () => {
-			setMounted(false);
+			isMounted = false;
 		};
-	}, []);
+	}, [router]);
 
 	let displayTab;
 	switch (activeTab) {

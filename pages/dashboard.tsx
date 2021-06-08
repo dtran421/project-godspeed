@@ -103,8 +103,6 @@ interface DashboardProps {
 }
 
 const Dashboard: FC<DashboardProps> = ({ router }: DashboardProps) => {
-	const [isMounted, setMounted] = useState(true);
-
 	const [
 		[isFetching, watchlists, watchlistsData],
 		updateWatchlists
@@ -115,36 +113,37 @@ const Dashboard: FC<DashboardProps> = ({ router }: DashboardProps) => {
 	]);
 	const [activeListIndex, setActiveList] = useState(-1);
 
-	const fetchWatchlists = (userUID) => {
-		db.collection("watchlists")
-			.doc(userUID)
-			.collection("lists")
-			.get()
-			.then((listDocs) => {
-				const fetchedWatchlists = [],
-					fetchedWatchlistsData = {};
-				listDocs.forEach((listDoc) => {
-					fetchedWatchlists.push(listDoc.id);
-					fetchedWatchlistsData[listDoc.id] = {
-						shoes: listDoc.data().shoes,
-						created: listDoc.data().created.toDate()
-					};
-				});
-				updateWatchlists([
-					false,
-					fetchedWatchlists,
-					fetchedWatchlistsData
-				]);
-				if (fetchedWatchlists.length > 0) {
-					setActiveList(0);
-				}
-			})
-			.catch((error) => {
-				console.log("Error getting document:", error);
-			});
-	};
 	useEffect(() => {
-		setMounted(true);
+		const fetchWatchlists = (userUID) => {
+			db.collection("watchlists")
+				.doc(userUID)
+				.collection("lists")
+				.get()
+				.then((listDocs) => {
+					const fetchedWatchlists = [],
+						fetchedWatchlistsData = {};
+					listDocs.forEach((listDoc) => {
+						fetchedWatchlists.push(listDoc.id);
+						fetchedWatchlistsData[listDoc.id] = {
+							shoes: listDoc.data().shoes,
+							created: listDoc.data().created.toDate()
+						};
+					});
+					updateWatchlists([
+						false,
+						fetchedWatchlists,
+						fetchedWatchlistsData
+					]);
+					if (fetchedWatchlists.length > 0) {
+						setActiveList(0);
+					}
+				})
+				.catch((error) => {
+					console.log("Error getting document:", error);
+				});
+		};
+
+		let isMounted = true;
 		firebase.auth().onAuthStateChanged((user) => {
 			if (user) {
 				if (isMounted) {
@@ -159,9 +158,9 @@ const Dashboard: FC<DashboardProps> = ({ router }: DashboardProps) => {
 		});
 
 		return () => {
-			setMounted(false);
+			isMounted = false;
 		};
-	}, []);
+	}, [router]);
 
 	const [[listShoes, shoeChildren, creationDate], updateListInfo] = useState<
 		[string[], Record<string, ShoeChild[]>, string]
@@ -179,7 +178,7 @@ const Dashboard: FC<DashboardProps> = ({ router }: DashboardProps) => {
 				creationDate
 			]);
 		}
-	}, [activeListIndex, watchlistsData]);
+	}, [activeListIndex, watchlists, watchlistsData]);
 
 	const [[graphShoe, shoeName, shoeData], updateGraphShoe] = useState([
 		"",
@@ -197,38 +196,38 @@ const Dashboard: FC<DashboardProps> = ({ router }: DashboardProps) => {
 	] = useState([true, {}]);
 	const [tableData, updateTableData] = useState([]);
 
-	const processShoeInfos = async () => {
-		const newShoeInfos = await fetchShoeInfos(shoeInfos, listShoes);
-		const newChildrenInfos = await fetchChildrenInfos(
-			childrenInfos,
-			shoeChildren
-		);
-		updateShoeInfos([false, newShoeInfos]);
-		updateChildrenInfos([false, newChildrenInfos]);
-		updateTableData(
-			prepareDashboardTable(
-				newShoeInfos,
-				newChildrenInfos,
-				listShoes,
-				shoeChildren
-			)
-		);
-		if (listShoes.length) {
-			updateGraphShoe([
-				listShoes[0],
-				newShoeInfos[listShoes[0]].name,
-				[]
-			]);
-		}
-	};
 	useEffect(() => {
+		const processShoeInfos = async () => {
+			const newShoeInfos = await fetchShoeInfos(shoeInfos, listShoes);
+			const newChildrenInfos = await fetchChildrenInfos(
+				childrenInfos,
+				shoeChildren
+			);
+			updateShoeInfos([false, newShoeInfos]);
+			updateChildrenInfos([false, newChildrenInfos]);
+			updateTableData(
+				prepareDashboardTable(
+					newShoeInfos,
+					newChildrenInfos,
+					listShoes,
+					shoeChildren
+				)
+			);
+			if (listShoes.length) {
+				updateGraphShoe([
+					listShoes[0],
+					newShoeInfos[listShoes[0]].name,
+					[]
+				]);
+			}
+		};
+
 		if (shoeChildren) {
 			processShoeInfos();
 		}
-	}, [listShoes, watchlistsData]);
+	}, [childrenInfos, listShoes, shoeChildren, shoeInfos, watchlistsData]);
 
 	const deleteShoe = (shoeId: string, child: boolean, parent?: string) => {
-		console.log(shoeId);
 		firebase.auth().onAuthStateChanged((user) => {
 			if (user) {
 				const newWatchlistsData = { ...watchlistsData };
@@ -311,8 +310,8 @@ const Dashboard: FC<DashboardProps> = ({ router }: DashboardProps) => {
 
 	return (
 		<UserLayout page={"Dashboard"} userStatus={true}>
-			<div className="flex-1 flex justify-center items-center">
-				<div className="w-full justify-center py-16">
+			<div className="h-full flex flex-1 justify-center items-center">
+				<div className="w-full h-full py-16">
 					<WatchlistList
 						isFetching={isFetching}
 						lists={watchlists}
@@ -322,15 +321,15 @@ const Dashboard: FC<DashboardProps> = ({ router }: DashboardProps) => {
 							updateWatchlistsAfterCreation
 						}
 					/>
-					<div className="w-full flex flex-col items-end">
-						<div className="w-5/6">
-							<div className="max-w-6xl mx-auto">
-								<div className="flex justify-between items-end mb-10">
-									<h1 className="text-5xl font-semibold">
+					<div className="w-full flex justify-center lg:justify-end">
+						<div className="w-full lg:w-3/4 xl:w-5/6 mt-4 lg:mt-0 px-6 lg:px-0">
+							<div className="lg:max-w-2xl xl:max-w-5xl mx-auto">
+								<div className="flex flex-col lg:flex-row items-center lg:justify-between lg:items-end mb-6 lg:mb-10">
+									<h1 className="text-3xl lg:text-5xl text-center lg:text-left font-semibold">
 										Watchlist Performance
 									</h1>
 									{activeListIndex !== -1 && (
-										<div className="flex items-end gap-x-4">
+										<div className="flex items-end gap-x-4 mt-3 lg:mt-0">
 											<button
 												className="bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors duration-100 ease-in-out focus:outline-none rounded-full shadow-lg p-2"
 												onClick={() =>

@@ -2,6 +2,7 @@ import React, { FC, useState, useEffect, useContext, useRef } from "react";
 import { useRouter } from "next/router";
 import { Formik, Form, Field } from "formik";
 import { FiSearch, FiX } from "react-icons/fi";
+import { useMediaQuery } from "react-responsive";
 
 import { firebase, db } from "../../pages/_app";
 import { DashboardModalContext } from "../../pages/dashboard";
@@ -9,11 +10,14 @@ import { AddShoe, SearchInfo, ShoeChild } from "../../pages/api/StructureTypes";
 import SearchResult from "./SearchResult";
 import { ListSchema } from "../Global/Configs/ValidationSchema";
 import { Error } from "./WatchlistList";
+import { lgScreenQuery } from "../Global/Configs/Breakpoints";
 
 const RESULTS_PER_BATCH = 6;
 
 export const AddModal: FC<Record<string, unknown>> = () => {
 	const router = useRouter();
+
+	const lgScreen = useMediaQuery(lgScreenQuery);
 
 	const {
 		listName,
@@ -131,7 +135,7 @@ export const AddModal: FC<Record<string, unknown>> = () => {
 	return (
 		<div
 			ref={modalRef}
-			className={`w-3/5 ${
+			className={`w-3/4 lg:w-3/5 ${
 				numResults && searchInfos.length && "h-full"
 			} flex flex-col bg-white dark:bg-gray-900 bg-opacity-100 rounded-xl`}
 		>
@@ -143,16 +147,16 @@ export const AddModal: FC<Record<string, unknown>> = () => {
 					<FiX size={28} />
 				</button>
 			</div>
-			<div className="w-full h-full flex flex-col items-center px-12 mt-2 mb-12">
-				<h1 className="text-3xl font-semibold mb-6">
+			<div className="w-full h-full flex flex-col items-center px-6 lg:px-12 mt-2 lg:mb-8">
+				<h1 className="text-2xl lg:text-3xl text-center font-semibold mb-6">
 					Add to Watchlist
 				</h1>
-				<div className="w-3/4 flex items-center gap-x-4 mb-8">
-					<div className="w-full flex">
+				<div className="w-full xl:w-3/4 flex flex-col lg:flex-row items-center gap-y-4 lg:gap-y-0 mb-4 lg:mb-8">
+					<div className="md:w-3/4 lg:w-full flex justify-center items-center">
 						<input
 							type="text"
 							name="Search"
-							className="w-full text-lg rounded-l-lg bg-white dark:bg-gray-900 border-l-2 border-t-2 border-b-2 border-gray-400 dark:border-gray-600 focus:outline-none pl-4 py-1"
+							className="w-full lg:text-lg rounded-l-lg bg-white dark:bg-gray-900 border-l-2 border-t-2 border-b-2 border-gray-400 dark:border-gray-600 focus:outline-none pl-4 py-1"
 							placeholder={"Search"}
 							value={searchValue}
 							onChange={(ev) =>
@@ -165,14 +169,14 @@ export const AddModal: FC<Record<string, unknown>> = () => {
 							}}
 						/>
 						<button
-							className="text-white rounded-r-lg text-lg bg-purple-500 dark:bg-purple-600 border-2 border-purple-500 dark:border-purple-600 px-3 py-2 focus:outline-none"
+							className="text-white rounded-r-lg bg-purple-500 dark:bg-purple-600 border-2 border-purple-500 dark:border-purple-600 px-2 lg:px-3 py-2 lg:mr-4 focus:outline-none"
 							onClick={() => search(true)}
 						>
-							<FiSearch size={20} />
+							<FiSearch size={lgScreen ? 20 : 16} />
 						</button>
 					</div>
 					<button
-						className="h-full text-xl text-white bg-purple-500 dark:bg-purple-600 dark:disabled:bg-gray-700 rounded-lg px-4 py-1 focus:outline-none"
+						className="text-lg lg:text-xl text-white rounded-lg bg-purple-500 dark:bg-purple-600 border-2 border-purple-500 dark:border-purple-600 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-600 dark:disabled:bg-gray-700 disabled:border-gray-600 dark:disabled:border-gray-700 px-4 py-1"
 						onClick={() => {
 							addToWatchlist();
 						}}
@@ -183,14 +187,13 @@ export const AddModal: FC<Record<string, unknown>> = () => {
 				</div>
 				{numResults !== 0 ? (
 					searchInfos.length !== 0 ? (
-						<div className="w-full h-2/3 flex flex-col gap-y-4 overflow-auto pr-2">
+						<div className="w-full h-3/5 lg:h-2/3 flex flex-col gap-y-4 overflow-auto pr-2">
 							{searchInfos.map((searchInfo, index) => {
 								if (index < numResults) {
 									return (
 										<SearchResult
 											key={index}
 											searchInfo={searchInfo}
-											addShoes={addShoes}
 											updateAddShoes={updateAddShoes}
 										/>
 									);
@@ -198,18 +201,18 @@ export const AddModal: FC<Record<string, unknown>> = () => {
 							})}
 						</div>
 					) : (
-						<p className="text-lg text-center dark:text-gray-300 font-semibold">
+						<p className="md:text-lg text-center dark:text-gray-300 font-semibold">
 							No results found.
 						</p>
 					)
 				) : (
-					<p className="text-center dark:text-gray-300 font-medium">
+					<p className="text-sm md:text-md lg:text-lg text-center dark:text-gray-300 font-medium mb-8 lg:my-4">
 						Search for shoes to add to your watchlist!
 					</p>
 				)}
 				{searchInfos.length !== 0 && (
 					<button
-						className="text-purple-600 dark:text-purple-500 border-2 border-purple-600 font-medium rounded-xl px-4 py-2 mt-6 focus:outline-none"
+						className="font-medium rounded-xl text-purple-600 dark:text-purple-500 border-2 border-purple-600 focus:outline-none px-4 py-2 mt-3 lg:mt-6"
 						onClick={() => loadMoreResults()}
 					>
 						Load More
@@ -336,7 +339,7 @@ export const RenameModal: FC<Record<string, unknown>> = () => {
 	return (
 		<div
 			ref={modalRef}
-			className="w-1/4 flex flex-col bg-white dark:bg-gray-900 bg-opacity-100 rounded-xl"
+			className="w-3/4 md:w-1/2 lg:w-2/5 xl:w-1/3 flex flex-col bg-white dark:bg-gray-900 bg-opacity-100 rounded-xl"
 		>
 			<div className="flex justify-end">
 				<button
@@ -346,8 +349,8 @@ export const RenameModal: FC<Record<string, unknown>> = () => {
 					<FiX size={28} />
 				</button>
 			</div>
-			<div className="flex flex-col items-center mt-2 mb-12">
-				<h1 className="text-3xl font-semibold mb-6">
+			<div className="flex flex-col items-center mt-2 mb-8 lg:mb-12">
+				<h1 className="text-2xl lg:text-3xl font-semibold mb-6">
 					Rename Watchlist
 				</h1>
 				<Formik
@@ -362,15 +365,15 @@ export const RenameModal: FC<Record<string, unknown>> = () => {
 					{({ errors, touched, isSubmitting }) => {
 						return (
 							<Form className="px-6">
-								<div className="flex justify-center gap-x-4">
+								<div className="flex justify-center gap-x-4 lg:text-lg">
 									<Field
 										name="listName"
 										placeholder="List Name"
-										className="w-full text-lg bg-blue-50 dark:bg-gray-700 rounded-lg font-medium pl-3 py-2 border-2 border-gray-300 dark:border-gray-500 focus:outline-none focus:border-purple-400 dark:focus:border-purple-500"
+										className="w-full font-medium rounded-lg bg-blue-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-500 focus:outline-none focus:border-purple-400 dark:focus:border-purple-500 pl-3 py-1 lg:py-2"
 									/>
 									<button
 										type="submit"
-										className="text-lg font-medium rounded-lg bg-purple-600 text-white py-2 px-6 focus:outline-none disabled:cursor-not-allowed"
+										className="font-medium rounded-lg text-white bg-purple-600 focus:outline-none disabled:cursor-not-allowed px-4 lg:px-6 py-1 lg:py-2"
 										disabled={isSubmitting}
 									>
 										Rename
@@ -469,7 +472,7 @@ export const DeleteModal: FC<Record<string, unknown>> = () => {
 	return (
 		<div
 			ref={modalRef}
-			className="w-1/5 flex flex-col bg-white dark:bg-gray-900 bg-opacity-100 rounded-xl"
+			className="w-3/4 md:w-1/2 lg:w-2/5 xl:w-1/3 flex flex-col bg-white dark:bg-gray-900 bg-opacity-100 rounded-xl"
 		>
 			<div className="flex justify-end">
 				<button
@@ -480,10 +483,10 @@ export const DeleteModal: FC<Record<string, unknown>> = () => {
 				</button>
 			</div>
 			<div className="flex flex-col items-center px-6 mt-2 mb-12">
-				<h1 className="text-3xl font-semibold mb-2">
+				<h1 className="text-2xl lg:text-3xl font-semibold mb-2">
 					Delete Watchlist
 				</h1>
-				<h2 className="text-lg mb-6">
+				<h2 className="lg:text-lg mb-6">
 					Enter {`"`}
 					<span className="font-medium">{`${listName}`}</span>
 					{`"`} to confirm
@@ -500,15 +503,15 @@ export const DeleteModal: FC<Record<string, unknown>> = () => {
 					{({ errors, touched, isSubmitting }) => {
 						return (
 							<Form>
-								<div className="flex flex-col items-center gap-y-4">
+								<div className="flex flex-col items-center lg:text-lg gap-y-4">
 									<Field
 										name="listName"
 										placeholder="List Name"
-										className="text-lg bg-blue-50 dark:bg-gray-700 rounded-lg font-medium pl-3 py-2 border-2 border-gray-300 dark:border-gray-500 focus:outline-none focus:border-purple-400 dark:focus:border-purple-500"
+										className="font-medium rounded-lg bg-blue-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-500 focus:outline-none focus:border-purple-400 dark:focus:border-purple-500 pl-3 py-1 lg:py-2"
 									/>
 									<button
 										type="submit"
-										className="text-lg font-medium rounded-lg bg-red-600 text-white py-2 px-6 focus:outline-none disabled:cursor-not-allowed"
+										className="font-medium text-white rounded-lg bg-red-600 focus:outline-none disabled:cursor-not-allowed px-4 lg:px-6 py-1 lg:py-2"
 										disabled={isSubmitting}
 									>
 										Delete

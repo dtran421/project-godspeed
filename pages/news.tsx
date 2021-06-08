@@ -32,10 +32,10 @@ export interface NewsProps {
 const News: FC<NewsProps> = ({ sources }: NewsProps) => {
 	return (
 		<MainLayout page={"News"} userStatus={null}>
-			<div className="mx-auto max-w-7xl rounded-xl p-4">
+			<div className="lg:max-w-4xl xl:max-w-7xl rounded-xl p-4 md:px-10 py-4 mx-auto">
 				<div className="flex flex-col">
 					<div className="max-w-5xl mx-auto mt-6 mb-20">
-						<h1 className="flex items-center text-6xl font-bold py-4">
+						<h1 className="text-3xl lg:text-5xl text-center lg:text-left font-bold py-4">
 							Latest News
 						</h1>
 						<PopularNews sources={sources} />
@@ -48,7 +48,7 @@ const News: FC<NewsProps> = ({ sources }: NewsProps) => {
 						} = source;
 						return (
 							<div key={index} className="flex flex-col mb-20">
-								<div className="flex">
+								<div className="flex justify-center lg:justify-start">
 									<a
 										href={link}
 										target="_blank"
@@ -66,7 +66,7 @@ const News: FC<NewsProps> = ({ sources }: NewsProps) => {
 										)}
 									</a>
 								</div>
-								<div className="grid grid-cols-4 gap-6 max-w-6xl">
+								<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 max-w-6xl">
 									{latestStories.map((story, index) => {
 										return (
 											<NewsCard key={index} {...story} />

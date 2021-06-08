@@ -7,12 +7,12 @@ import {
 } from "../../../pages/api/StructureTypes";
 import { months } from "../../../pages/drops";
 import {
-	imageCell,
-	productCell,
-	statCell,
-	specialPriceCell,
-	specialGainCell,
-	actionCell,
+	ImageCell,
+	ProductCell,
+	StatCell,
+	SpecialPriceCell,
+	SpecialGainCell,
+	ActionCell,
 	expanderHeader,
 	expanderCell
 } from "./Cells";
@@ -20,86 +20,87 @@ import {
 export const DashboardTableColumns = (
 	mode: string,
 	updateGraphShoe: Dispatch<SetStateAction<[string, string, number[]]>>,
-	deleteShoe: (shoeId: string) => void
+	deleteShoe: (shoeId: string, child: boolean, parent: string) => void
 ): Record<string, string | boolean | number | ((any) => void)>[] => [
 	{
-		Header: "",
+		Header: "Image",
 		accessor: "imageUrl",
-		Cell: ({ value: imageUrl }) => imageCell({ imageUrl })
+		width: 200,
+		Cell: ({ value: imageUrl }) => ImageCell({ imageUrl })
 	},
 	{
 		Header: "Product",
 		accessor: "product",
 		width: 200,
 		Cell: ({ value: { name, ticker, size } }) =>
-			productCell({ mode, name, ticker, size })
+			ProductCell({ mode, name, ticker, size })
 	},
 	{
 		Header: "Retail Price",
 		accessor: "retailPrice",
 		Cell: ({ value: retailPrice }) =>
-			statCell({ stat: retailPrice, format: "dollar" })
+			StatCell({ stat: retailPrice, format: "dollar" })
 	},
 	{
 		Header: "Last Price",
 		accessor: "latestPrice",
 		Cell: ({ value: { latestPrice, latestChange } }) =>
-			specialPriceCell({ latestPrice, latestChange })
+			SpecialPriceCell({ latestPrice, latestChange })
 	},
 	{
 		Header: "Total Gain",
 		accessor: "totalGain",
 		Cell: ({ value: { lastPrice, retailPrice } }) =>
-			specialGainCell({ lastPrice, retailPrice })
+			SpecialGainCell({ lastPrice, retailPrice })
 	},
 	{
 		Header: "Lowest Ask",
 		accessor: "lowestAsk",
 		Cell: ({ value: lowestAsk }) =>
-			statCell({ stat: lowestAsk, format: "dollar" })
+			StatCell({ stat: lowestAsk, format: "dollar" })
 	},
 	{
 		Header: "Highest Bid",
 		accessor: "highestBid",
 		Cell: ({ value: highestBid }) =>
-			statCell({ stat: highestBid, format: "dollar" })
+			StatCell({ stat: highestBid, format: "dollar" })
 	},
 	{
 		Header: "52 Week High",
 		accessor: "ytdHigh",
 		isVisible: false,
 		Cell: ({ value: ytdHigh }) =>
-			statCell({ stat: ytdHigh, format: "dollar" })
+			StatCell({ stat: ytdHigh, format: "dollar" })
 	},
 	{
 		Header: "52 Week Low",
 		accessor: "ytdLow",
 		Cell: ({ value: ytdLow }) =>
-			statCell({ stat: ytdLow, format: "dollar" })
+			StatCell({ stat: ytdLow, format: "dollar" })
 	},
 	{
 		Header: "Volatility",
 		accessor: "volatility",
 		Cell: ({ value: volatility }) =>
-			statCell({ stat: volatility, format: "percent" })
+			StatCell({ stat: volatility, format: "percent" })
 	},
 	{
 		Header: "Average Price",
 		accessor: "avgPrice",
 		Cell: ({ value: avgPrice }) =>
-			statCell({ stat: avgPrice, format: "dollar" })
+			StatCell({ stat: avgPrice, format: "dollar" })
 	},
 	{
 		Header: "Total Sales",
 		accessor: "totalSales",
 		Cell: ({ value: totalSales }) =>
-			statCell({ stat: totalSales, format: "number" })
+			StatCell({ stat: totalSales, format: "number" })
 	},
 	{
 		Header: "",
 		accessor: "action",
 		Cell: ({ value: { child, parent, shoeId, name } }) =>
-			actionCell({
+			ActionCell({
 				child,
 				parent,
 				shoeId,
@@ -217,26 +218,31 @@ export const SalesTableColumns: Record<
 	{
 		Header: "Date",
 		accessor: "date",
+		width: 200,
 		Cell: ({ value }) => value
 	},
 	{
 		Header: "Time",
 		accessor: "time",
+		width: 200,
 		Cell: ({ value }) => value
 	},
 	{
 		Header: "Size",
 		accessor: "shoeSize",
+		width: 200,
 		Cell: ({ value }) => value
 	},
 	{
 		Header: "Sale Price",
 		accessor: "amount",
+		width: 200,
 		Cell: ({ value }) => value
 	},
 	{
 		Header: "Profit/Loss",
 		accessor: "profit",
+		width: 200,
 		Cell: ({ value }) => value
 	}
 ];

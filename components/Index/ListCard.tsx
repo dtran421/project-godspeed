@@ -23,7 +23,7 @@ const ListCard: FC<ListCardProps> = ({
 }: ListCardProps) => {
 	const percentChange = Math.round(latestChange * 10000) / 100;
 	return (
-		<div className="h-full flex flex-col justify-between rounded-xl px-4 py-6 mx-3 w-60 bg-white dark:bg-gray-900 shadow-lg ">
+		<div className="w-52 lg:w-56 xl:w-60 h-full flex flex-col justify-between rounded-xl shadow-lg bg-white dark:bg-gray-900 px-4 py-6 mx-3 lg:mx-0">
 			<div className="relative flex flex-col">
 				<Modal
 					name={name}
@@ -72,22 +72,22 @@ const ListCard: FC<ListCardProps> = ({
 					</p>
 				</div>
 			) : (
-				<div className="flex justify-center mt-4">
-					<p
-						className={`flex items-center text-center font-semibold rounded-full px-3 py-2 ${
-							percentChange >= 0
-								? "text-green-500 dark:text-green-400 bg-green-100 dark:bg-green-800 dark:bg-opacity-30"
-								: "text-red-500 dark:text-red-400 bg-red-100 dark:bg-red-800 dark:bg-opacity-30"
-						}`}
-					>
-						${latestPrice} (
+				<div
+					className={`flex flex-wrap justify-center text-center font-semibold rounded-full ${
+						percentChange >= 0
+							? "text-green-500 dark:text-green-400 bg-green-100 dark:bg-green-800 dark:bg-opacity-30"
+							: "text-red-500 dark:text-red-400 bg-red-100 dark:bg-red-800 dark:bg-opacity-30"
+					} px-3 py-2 mt-4`}
+				>
+					<p className="flex items-center mr-2">${latestPrice}</p>
+					<p className="flex items-center">
+						(
 						{percentChange >= 0 ? (
 							<BsCaretUpFill size={16} />
 						) : (
 							<BsCaretDownFill size={16} />
 						)}
-						{percentChange}
-						%)
+						{percentChange}%)
 					</p>
 				</div>
 			)}

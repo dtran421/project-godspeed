@@ -1,18 +1,30 @@
 import React, { FC, useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { withRouter, NextRouter } from "next/router";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiChevronUp } from "react-icons/fi";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import _ from "lodash";
-import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import Skeleton, { SkeletonThemeProps } from "react-loading-skeleton";
 
 import { firebase, db } from "../pages/_app";
 import { ModalContext } from "../components/Global/Modal";
-import { MAX_SHOES_PER_LINE } from "./api/newReleases";
 import MainLayout from "../components/Global/Layouts/MainLayout";
 import HighlightPanel from "../components/Drops/HighlightPanel";
 import ReleaseCard from "../components/Drops/ReleaseCard";
+
+const SkeletonTheme = dynamic(
+	() =>
+		import("react-loading-skeleton").then((module) => module.SkeletonTheme),
+	{
+		ssr: false
+	}
+) as FC<SkeletonThemeProps>;
+
+const MAX_SHOES_PER_LINE = 4;
+const MAX_SHOES_PER_LINE_TABLET = 2;
+const MAX_SHOES_PER_LINE_MOBILE = 1;
 
 export const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -57,66 +69,56 @@ export interface DropsProps {
 const Drops: FC<DropsProps> = ({ router }: DropsProps) => {
 	const { theme } = useTheme();
 
-	const [isMounted, setMounted] = useState(true);
+	const [
+		[isFetchingLists, hasFetchedLists, watchlists],
+		updateWatchlists
+	] = useState([true, false, []]);
+	useEffect(() => {
+		const fetchWatchlists = (userUID: string) => {
+			db.collection("watchlists")
+				.doc(userUID)
+				.collection("lists")
+				.get()
+				.then((listDocs) => {
+					const fetchedWatchlists = [];
+					listDocs.forEach((listDoc) => {
+						fetchedWatchlists.push({
+							value: listDoc.id,
+							label: listDoc.id
+						});
+					});
+					updateWatchlists([false, true, fetchedWatchlists]);
+				})
+				.catch((error) => {
+					console.log("Error getting document:", error);
+				});
+		};
 
-	const [[month, index, releaseMonths], updateMonth] = useState([
-		prepMonth(router),
-		0,
-		[]
-	]);
+		let isMounted = true;
+		firebase.auth().onAuthStateChanged((user) => {
+			if (user) {
+				if (isMounted) {
+					fetchWatchlists(user.uid);
+				}
+			}
+		});
+
+		return () => {
+			isMounted = false;
+		};
+	}, []);
+
+	const [month, updateMonth] = useState(prepMonth(router));
+	const [[index, releaseMonths], updateReleaseMonths] = useState([0, []]);
+
 	const [top3List, updateTop3List] = useState([]);
 	const [[isFetchingNewReleases, newReleases], updateNewReleases] = useState([
 		true,
 		[]
 	]);
 
-	const [
-		[isFetchingLists, hasFetchedLists, watchlists],
-		updateWatchlists
-	] = useState([true, false, []]);
-	const fetchWatchlists = (userUID: string) => {
-		db.collection("watchlists")
-			.doc(userUID)
-			.collection("lists")
-			.get()
-			.then((listDocs) => {
-				const fetchedWatchlists = [];
-				listDocs.forEach((listDoc) => {
-					fetchedWatchlists.push({
-						value: listDoc.id,
-						label: listDoc.id
-					});
-				});
-				updateWatchlists([false, true, fetchedWatchlists]);
-			})
-			.catch((error) => {
-				console.log("Error getting document:", error);
-			});
-	};
 	useEffect(() => {
-		setMounted(true);
-		firebase.auth().onAuthStateChanged((user) => {
-			if (user) {
-				if (isMounted) {
-					fetchWatchlists(user.uid);
-				}
-			} else {
-				router.push({
-					pathname: "/login",
-					query: { from: router.pathname }
-				});
-			}
-		});
-
-		return () => {
-			setMounted(false);
-		};
-	}, []);
-
-	useEffect(() => {
-		let isMounted = true;
-		if (isMounted) {
-			updateNewReleases([true, newReleases]);
+		const fetchNewReleases = () => {
 			fetch(`/api/newReleases?month=${month}`)
 				.then((response) => response.json())
 				.then(
@@ -128,22 +130,37 @@ const Drops: FC<DropsProps> = ({ router }: DropsProps) => {
 					}) => {
 						updateTop3List(top3);
 						updateNewReleases([false, fetchedNewReleases]);
-						updateMonth([current, index, releaseMonths]);
+						if (current !== month) {
+							updateMonth(current);
+						}
+						updateReleaseMonths([index, releaseMonths]);
 						router.push(`?month=${current}`, "/drops", {
 							shallow: true
 						});
 					}
 				);
+		};
+
+		let isMounted = true;
+		if (isMounted) {
+			if (router.query.month !== month) {
+				updateNewReleases((newReleasesArr) => [
+					true,
+					newReleasesArr[1]
+				]);
+				fetchNewReleases();
+			}
 		}
 
 		return () => {
 			isMounted = false;
 		};
-	}, [month]);
+	}, [month, router]);
 
 	const paginate = (direction: number) => {
 		const newMonth = releaseMonths[index + direction];
-		updateMonth([newMonth, index + direction, releaseMonths]);
+		updateMonth(newMonth);
+		updateReleaseMonths([index + direction, releaseMonths]);
 		router.push(`?month=${newMonth}`, "/drops", { shallow: true });
 	};
 
@@ -189,13 +206,13 @@ const Drops: FC<DropsProps> = ({ router }: DropsProps) => {
 						]
 					}}
 				>
-					<div className="max-w-5xl mx-auto mb-16">
-						<h1 className="text-5xl font-bold mt-10 mb-6">
+					<div className="lg:max-w-4xl xl:max-w-6xl px-6 mx-auto mb-16">
+						<h1 className="text-3xl md:text-4xl lg:text-5xl text-center lg:text-left font-bold mt-10 mb-6">
 							Upcoming Drops
 						</h1>
 						<HighlightPanel top3List={top3List} />
 					</div>
-					<div className="sticky top-19 z-20 flex justify-center w-full bg-white dark:bg-gray-900 border-t border-b border-gray-200 dark:border-gray-700 p-4 mb-8">
+					<div className="sticky top-17 lg:top-18 z-20 flex justify-center w-full bg-white dark:bg-gray-900 border-t border-b border-gray-200 dark:border-gray-700 p-4 mb-8">
 						<div className="flex justify-between max-w-md">
 							<button
 								className={buttonClass}
@@ -206,7 +223,7 @@ const Drops: FC<DropsProps> = ({ router }: DropsProps) => {
 									onClick={() => paginate(-1)}
 								/>
 							</button>
-							<p className="w-16 text-xl text-center font-medium uppercase">
+							<p className="w-16 text-lg lg:text-xl text-center font-medium uppercase">
 								{months[month.toString().padStart(2, "0")]}
 							</p>
 							<button
@@ -229,13 +246,13 @@ const Drops: FC<DropsProps> = ({ router }: DropsProps) => {
 									return (
 										<div
 											key={index}
-											className="max-w-6xl mx-auto mb-4"
+											className="lg:max-w-4xl xl:max-w-6xl mx-10 lg:mx-auto mb-4"
 										>
-											<h1 className="text-4xl font-bold mt-10 mb-4">
+											<h1 className="text-3xl lg:text-4xl font-bold mt-10 mb-4">
 												<Skeleton width={200} />
 											</h1>
 											<div
-												className={`grid grid-cols-${MAX_SHOES_PER_LINE} gap-6`}
+												className={`grid grid-cols-${MAX_SHOES_PER_LINE_MOBILE} md:grid-cols-${MAX_SHOES_PER_LINE_TABLET} lg:grid-cols-${MAX_SHOES_PER_LINE} gap-6`}
 											>
 												{_.times(4, (index) => {
 													return (
@@ -265,16 +282,16 @@ const Drops: FC<DropsProps> = ({ router }: DropsProps) => {
 										return (
 											<div
 												key={index}
-												className="max-w-6xl mx-auto mb-4"
+												className="lg:max-w-4xl xl:max-w-6xl mx-10 lg:mx-auto mb-4"
 											>
-												<h1 className="text-4xl font-bold mt-10 mb-4">{`${
+												<h1 className="text-3xl lg:text-4xl font-bold mt-10 mb-4">{`${
 													months[dateComponents[1]]
 												} ${dateComponents[2].replace(
 													/^0+/,
 													""
 												)}`}</h1>
 												<div
-													className={`grid grid-cols-${MAX_SHOES_PER_LINE} gap-6`}
+													className={`grid grid-cols-${MAX_SHOES_PER_LINE_MOBILE} md:grid-cols-${MAX_SHOES_PER_LINE_TABLET} lg:grid-cols-${MAX_SHOES_PER_LINE} gap-6`}
 												>
 													{newReleases[
 														releaseDate
