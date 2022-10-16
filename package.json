@@ -10,7 +10,7 @@
 	"dependencies": {
 		"cheerio": "^1.0.0-rc.6",
 		"cors": "^2.8.5",
-		"firebase": "^8.3.3",
+		"firebase": "^8.10.1",
 		"firebase-admin": "^9.6.0",
 		"formik": "^2.2.6",
 		"framer-motion": "^4.1.3",
